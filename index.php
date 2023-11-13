@@ -4,7 +4,7 @@ echo '<br>';
 echo 'Hello from Thingit Mr ' . htmlspecialchars($_GET["name"]) . '!';
 echo '<br>';
 echo '<br>';
-echo "finished"
+echo "finished".'<br/>';
 foreach($_GET as $key => $value)
 {
 //   echo 'Key = ' . $key . '<br />';
