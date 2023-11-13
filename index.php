@@ -1,6 +1,5 @@
 <?php
-//echo config('site_url');
-print_r($_GET);
+//print_r($_GET);
 echo '<br>';
 echo 'Hello from Thingit Mr ' . htmlspecialchars($_GET["name"]) . '!';
 echo '<br>';
