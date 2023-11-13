@@ -1,10 +1,14 @@
 <?php
-$json = file_get_contents('php://input');
-echo $json;
-$data = json_decode($json,true);
-echo $data;
+$js = file_get_contents('php://input');
+echo 'printing var js:';
+echo $js;
+echo '<br/>';
+$data = json_decode($js,true);
+echo 'printing variable data=json_decode(js):';
+echo $data;echo '<br/>';
 print_r($data);
-
+echo '<br/>';echo '<br/>';
+echo 'Now we will do the dweet catch thing:';echo '<br/>';
 /* Testing
 curl --header "Content-Type:application/json" --header "Accept: application/json" --request POST --data '{"DT":"08/11/2023 16:35:48","VR":"20906,20761,20739"}' http://127.0.0.1/jason-test.php
 Response:
