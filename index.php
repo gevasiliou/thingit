@@ -1,25 +1,19 @@
-<?php
-//print_r($_GET);
-echo '<br>';
-echo 'Hello from Thingit Mr ' . htmlspecialchars($_GET["name"]) . '!';
-echo '<br>';
-echo '<br>';
-echo "finished".'<br/>';
-foreach($_GET as $key => $value)
-{
-//   echo 'Key = ' . $key . '<br />';
-//   echo 'Value= ' . $value;
-   echo $key.'='.$value.'<br />';
-}
+POST / HTTP/1.1
+Host: 10.0.0.2:8888
+Accept: */*
+Content-Length: 26
+Content-Type: application/x-www-form-urlencoded
 
+{"VR":[20729,20545,20482]}POST / HTTP/1.1
+Host: 10.0.0.2:8888
+Accept: */*
+Content-Length: 26
+Content-Type: application/x-www-form-urlencoded
 
-/*
-    print_r($_POST);
+{"VR":[20729,20545,20482]}POST / HTTP/1.1
+Host: 10.0.0.2:8888
+Accept: */*
+Content-Length: 26
+Content-Type: application/x-www-form-urlencoded
 
-    //Or:
-//    foreach ($_POST as $key => $value)
-    foreach ($_GET as $key => $value)
-
-        echo $key.'='.$value.'<br />';
-*/
-?>
+{"VR":[20729,20545,20482]}

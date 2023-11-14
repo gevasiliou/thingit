@@ -14,10 +14,19 @@ $newCurl = curl_init();
 curl_setopt($newCurl, CURLOPT_URL, $url);
 curl_setopt($newCurl, CURLOPT_RETURNTRANSFER, true);
 $data2 = curl_exec($newCurl);
-echo $data2;
+//echo $data2; //this works
 //$data3 = json_decode($output,true);
 $data3 =  json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $data2), true ); 
-echo $data3;
+//echo $data3;
+$data4 = json_decode($data2,true);
+$html = <<<EOT
+<div>
+   The value of the variable is: $data4
+</div>
+EOT;
+echo $html;
+
+
 /* Testing
 curl --header "Content-Type:application/json" --header "Accept: application/json" --request POST --data '{"DT":"08/11/2023 16:35:48","VR":"20906,20761,20739"}' http://127.0.0.1/jason-test.php
 Response:
@@ -31,4 +40,5 @@ hello
 */
 
 ?>
-html_hello
+<br/>
+This is a hello message outside of php - pure html!
