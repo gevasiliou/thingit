@@ -16,17 +16,25 @@ curl_setopt($newCurl, CURLOPT_RETURNTRANSFER, true);
 $data2 = curl_exec($newCurl);
 //echo $data2; //this works
 //$data3 = json_decode($output,true);
-$data3 =  json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $data2), true ); 
+//$data3 =  json_decode( preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $data2), true ); 
 //echo $data3;
 $data4 = json_decode($data2,true);
+echo 'Variable raw value: '. $data2 .'<br /> <br />';
+
+foreach($data4 as $key => $value)
+{ 
+    echo $key.'='.$value.'<br />'; 
+}
+
+/*
 $html = <<<EOT
 <div>
-   The value of the variable is: $data4
+   The value of the variable is: $data2
 </div>
 EOT;
 echo $html;
-
-
+*/
+echo '<br />'
 /* Testing
 curl --header "Content-Type:application/json" --header "Accept: application/json" --request POST --data '{"DT":"08/11/2023 16:35:48","VR":"20906,20761,20739"}' http://127.0.0.1/jason-test.php
 Response:
