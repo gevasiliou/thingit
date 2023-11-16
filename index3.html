@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Receiver with Socket.IO</title>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script> <!-- Socket.IO CDN -->
+</head>
+<body>
+    <div id="data-display"></div>
+
+    <script>
+        const socket = io('http://localhost:8080'); // Connect to the Socket.IO server (adjust the URL)
+
+        socket.on('connect', () => {
+            console.log('Socket.IO connected');
+        });
+
+        socket.on('data', (jsonData) => {
+            // Update your web page with the received data
+            document.getElementById('data-display').innerText = jsonData;
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Socket.IO disconnected');
+        });
+    </script>
+</body>
+</html>

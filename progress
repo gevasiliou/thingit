@@ -1,0 +1,5 @@
+Best So far is node-server5 and server6. 
+Especially server5 works like netcat....
+
+While our index.html can get connected to WebSocket Server when invoked with php -S localhost:8090 
+it seems that nodejs fails to handle WebSocket 
