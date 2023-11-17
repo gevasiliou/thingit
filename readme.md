@@ -107,11 +107,16 @@ Make sure to have access to browser console (i.e Developer Tools in FireFox) sin
 ## Data-Sender connection to ws-sender.js 
 Assuming that ws-server.js is running on a CLI instance, open a new command line terminal and use telnet for node-server testing like this:
     telnet localhost 3000
-    <telnet messages about the connection>
+    Connected to localhost.
+    Escape character is '^]'.
     {"Temperature":"25"}
 
 If everything is set up correctly you should see this json string in your browswer, automatically injected in web page wsclient.html
 
+Tip: If by Telnet you sent a non valid json string, your browser will not be able to display the text and browser console will complain
+about improper json string received by javascript json parser.
+
 ## TODO
-To complete this project a million of things can fullfill the "todo" list.
-To be completed later.
+1. Connect a real "data-sender" and see if those data are correctly sent to wsclient.html
+
+## Sources - Docs 
