@@ -8,21 +8,27 @@ const wss = new WebSocket.Server({ port: 8080 }); // Adjust the port number
 const clients = [];
 
 wss.on('connection', (ws) => {
-  clients.push(ws);
+  clients.push(ws);  //ws is the WebSocket Client, push is the method to fill the clients array
+  console.log('[websock-srv]: WebSocket connected');
 
   ws.on('close', () => {
     // Remove disconnected clients
     clients.splice(clients.indexOf(ws), 1);
   });
+
+  ws.on('message', (message) => {
+    console.log(`[websock-srv]: Received message from WebSocket client: ${message}`);
+  });
+
 });
 
 // Create a TCP server for the "data sender"
 const tcpServer = net.createServer((socket) => {
-  console.log('Data sender connected');
+  console.log('[tcp-srv]: Data sender connected');
 
   socket.on('data', (data) => {
     const jsonData = data.toString(); // Assuming JSON data is received as a string
-    console.log('Received data from data sender:', jsonData);
+    console.log('[tcp-srv]: Received data from data sender:', jsonData);
 
     // Broadcast the received data to all WebSocket clients
     clients.forEach((client) => {
@@ -33,7 +39,7 @@ const tcpServer = net.createServer((socket) => {
   });
 
   socket.on('end', () => {
-    console.log('Data sender disconnected');
+    console.log('[tcp-srv]: Data sender disconnected');
   });
 });
 

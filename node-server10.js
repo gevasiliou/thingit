@@ -1,52 +1,32 @@
-const net = require('net');
-
-// Create a TCP server for the "data sender"
-const tcpServer = net.createServer((socket) => {
-  console.log('Data sender connected');
-
-  socket.on('data', (data) => {
-    const jsonData = data.toString(); // Assuming JSON data is received as a string
-    console.log('Received data from data sender:', jsonData);
-
-    // Broadcast the received data to all connected HTTP clients (if available)
-    if (httpClients.length > 0) {
-      httpClients.forEach((client) => {
-        client.write(jsonData); // Write data to connected HTTP clients
-      });
+// This is only a websocket server.
+// source: https://www.piesocket.com/blog/nodejs-websocket
+// To test the server see the file node-client10.html
+// important: Open the html file by browser File - Open File method
+// Importing the required modules
+const WebSocketServer = require('ws');
+ 
+// Creating a new websocket server
+const wss = new WebSocketServer.Server({ port: 8080 })
+ 
+// Creating connection using websocket
+wss.on("connection", ws => {
+    console.log("[srv]: new client connected");
+ 
+    // sending message to client
+    ws.send('[srv]:Welcome, you are connected!');
+ 
+    //on message from client
+    ws.on("message", data => {
+        console.log(`[srv]: Client has sent us: ${data}`)
+    });
+ 
+    // handling what to do when clients disconnects from server
+    ws.on("close", () => {
+        console.log("[srv]: the client has connected");
+    });
+    // handling client connection error
+    ws.onerror = function () {
+        console.log("[srv]: Some Error occurred")
     }
-  });
-
-  socket.on('end', () => {
-    console.log('Data sender disconnected');
-  });
 });
-
-tcpServer.listen(3000, () => {
-  console.log('TCP server listening on port 3000');
-});
-
-// Array to store connected HTTP clients
-const httpClients = [];
-
-// Create an HTTP server for handling regular HTTP requests
-const http = require('http');
-
-const httpServer = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('HTTP server\n');
-});
-
-httpServer.listen(8080, () => {
-  console.log('HTTP server listening on port 8080');
-});
-
-// Store connected HTTP clients
-httpServer.on('connection', (client) => {
-  console.log('HTTP client connected');
-  httpClients.push(client);
-
-  client.on('close', () => {
-    console.log('HTTP client disconnected');
-    httpClients.splice(httpClients.indexOf(client), 1);
-  });
-});
+console.log("[srv]: The WebSocket server is running on port 8080");

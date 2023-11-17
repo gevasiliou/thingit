@@ -5,6 +5,6 @@ const server = net.createServer(socket => {
     socket.end((err)=>{console.log(err)})
 });
 
-server.listen(8090);
+server.listen(8080);
 
-//this piece of shit just works when you open Chrome and visit http://localhost:8090
+//this piece of shit just works when you open Chrome and visit http://localhost:8080
