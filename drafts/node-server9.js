@@ -1,4 +1,10 @@
 const net = require('net');
+// Create an HTTP server for handling regular HTTP requests
+const http = require('http');
+
+// Array to store connected HTTP clients
+const httpClients = [];
+
 
 // Create a TCP server for the "data sender"
 const tcpServer = net.createServer((socket) => {
@@ -25,11 +31,6 @@ tcpServer.listen(3000, () => {
   console.log('TCP server listening on port 3000');
 });
 
-// Array to store connected HTTP clients
-const httpClients = [];
-
-// Create an HTTP server for handling regular HTTP requests
-const http = require('http');
 
 const httpServer = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });

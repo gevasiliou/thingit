@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Receiver</title>
+</head>
+<body>
+    Hello from HTML    
+    <div id="data-display"></div>
+    
+    <script>
+        const socket = new WebSocket('ws://localhost:8080'); // Adjust URL if needed
+
+        socket.onopen = () => {
+            console.log('[wsclient]: WebSocket connected');
+        };
+
+        socket.onmessage = (event) => {
+            const receivedData = event.data;
+          //const receivedData = JSON.parse(event.data);
+
+            // Update your web page with the received data
+          //document.getElementById('data-display').innerText = JSON.stringify(receivedData);
+            document.getElementById('data-display').innerText = receivedData;
+        };
+
+        socket.onclose = () => {
+            console.log('[wsclient]: WebSocket connection closed');
+        };
+    </script>
+</body>
+</html>
