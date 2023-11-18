@@ -121,4 +121,6 @@ PS: Actually curl can be used to test any server in this repo.
 
 *Testing API with GET*    
 curl 'localhost:3000/?volt1=400&Current1=110'   
-$${\color{green}Green}$$    
+<font color=#0fb503>other color</font>    
+<a >blue color</a>    
+`red color`    
