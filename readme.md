@@ -22,6 +22,11 @@ This web page will be dynamically updated and display the keys-values as receive
 For this purpose we have built a nodejs "REST API" server that listens for data.
 See the server description bellow for more details.
 
+You need to have node.js and npm (nodejs packet manager) installed in your machine to make this server work.  
+Also you need to install the followind nodejs modules:  
+`npm install ws path http express body-parser`  
+
+
 ## Server Setup ##
 Usage: `node restapi-ws-http.js`  
 The server file `restapi-ws-http.js` actually contains three different services:  
