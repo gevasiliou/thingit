@@ -149,6 +149,7 @@ Those three messages are separate json, have the same DT and received by Teltoni
 
 ## Sources - Docs - Tips 
 - https://www.piesocket.com/blog/nodejs-websocket    
+- https://reqbin.com/post-online
 - https://reqbin.com/req/v0crmky0/rest-api-post-example    
 - https://reqbin.com/req/curl/y49bnbn3/test-json-response-online    
 - Javascript Method (in html client) to update 'data-display':  
