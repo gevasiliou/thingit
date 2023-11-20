@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Receiver</title>
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Hello from HTML</h1>
+    
+    <!-- HTML Table -->
+    <table id="data-table" border="1">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody id="data-display"></tbody>
+    </table>
+    
+    <!-- Canvas for Chart -->
+    <canvas id="myChart" width="800" height="600"></canvas>
+
+    <!-- Button for CSV Download -->
+    <button id="downloadCSV">Download CSV</button>
+    
+    <script>
+        const socket = new WebSocket('ws://localhost:8080'); // Adjust URL if needed
+
+        socket.onopen = () => {
+            console.log('[wsclient]: WebSocket connected');
+        };
+
+        let voltData1 = [];
+        let voltData2 = [];
+        let voltData3 = [];
+        let labels = []; // Store DT values for x-axis labels
+
+        // Create the chart instance
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Volt1-2-3 [1]',
+                    data: voltData1,
+                    borderColor: 'blue',
+                    borderWidth: 1,
+                    fill: false
+                }, {
+                    label: 'Volt1-2-3 [2]',
+                    data: voltData2,
+                    borderColor: 'green',
+                    borderWidth: 1,
+                    fill: false
+                }, {
+                    label: 'Volt1-2-3 [3]',
+                    data: voltData3,
+                    borderColor: 'red',
+                    borderWidth: 1,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 20000,
+                        max: 22000,
+                        ticks: {
+                            stepSize: 50 // Set the step size to 50 units
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            stepSize: 50, // Adjust the step size for x-axis if needed
+                            maxRotation: 90, // Rotate labels to 90 degrees
+                            minRotation: 45, // Rotate labels to 45 degrees
+                        }
+                    }
+                }
+            }
+        });
+
+        // Function to convert data to CSV format
+        function convertToCSV(data) {
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + data.map(row => row.join(",")).join("\n");
+            return encodeURI(csvContent);
+        }
+
+        // Function to download CSV
+        function downloadCSV() {
+            const allData = [labels, voltData1, voltData2, voltData3]; // Combine all data arrays
+            const rows = allData[0].map((_, i) => allData.map(column => column[i])); // Transpose data
+            const csvData = convertToCSV([['DT', 'Volt1-2-3 [1]', 'Volt1-2-3 [2]', 'Volt1-2-3 [3]'], ...rows]);
+
+            const downloadLink = document.createElement("a");
+            downloadLink.href = csvData;
+            downloadLink.download = 'chart_data.csv';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Attach click event to the button
+        const downloadButton = document.getElementById('downloadCSV');
+        downloadButton.addEventListener('click', downloadCSV);
+
+        socket.onmessage = (event) => {
+            const receivedData = event.data;
+            const formattedData = JSON.parse(receivedData);
+            const displayTable = document.getElementById('data-display');
+            
+            // Clear previous content
+            displayTable.innerHTML = '';
+
+            // Store the 'DT' value for x-axis labels
+            labels.push(formattedData['DT']);
+
+            // Create a row for 'DT' value in the table
+            const dtRow = document.createElement('tr');
+            const dtKeyCell = document.createElement('td');
+            const dtValueCell = document.createElement('td');
+            dtKeyCell.textContent = 'DT';
+            dtValueCell.textContent = formattedData['DT'];
+            dtRow.appendChild(dtKeyCell);
+            dtRow.appendChild(dtValueCell);
+            displayTable.appendChild(dtRow);
+
+            for (const key in formattedData) {
+                if (Object.hasOwnProperty.call(formattedData, key)) {
+                    const value = formattedData[key];
+                    if (Array.isArray(value)) {
+                        for (let i = 0; i < value.length; i++) {
+                            const tableRow = document.createElement('tr');
+                            const keyCell = document.createElement('td');
+                            const valueCell = document.createElement('td');
+                            
+                            keyCell.textContent = `${key} [${i + 1}]`;
+                            valueCell.textContent = value[i];
+                            
+                            tableRow.appendChild(keyCell);
+                            tableRow.appendChild(valueCell);
+                            displayTable.appendChild(tableRow);
+                            
+                            if (key === 'Volt1-2-3') {
+                                if (i === 0) {
+                                    voltData1.push(value[i]);
+                                } else if (i === 1) {
+                                    voltData2.push(value[i]);
+                                } else if (i === 2) {
+                                    voltData3.push(value[i]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (voltData1.length > 100) {
+                voltData1.shift();
+                voltData2.shift();
+                voltData3.shift();
+                labels.shift(); // Remove the oldest label
+            }
+            
+            chart.data.labels = labels.slice();
+            chart.data.datasets[0].data = voltData1.slice();
+            chart.data.datasets[1].data = voltData2.slice();
+            chart.data.datasets[2].data = voltData3.slice();
+            chart.update();
+        };
+
+        socket.onclose = () => {
+            console.log('[wsclient]: WebSocket connection closed');
+        };
+    </script>
+</body>
+</html>

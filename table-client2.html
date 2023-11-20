@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Receiver</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="downloadCSV()">Download CSV</button>
+    
+    <table id="data-table">
+        <tbody id="data-display"></tbody>
+    </table>
+    
+    <script>
+        const socket = new WebSocket('ws://localhost:8080'); // Adjust URL if needed
+        let tableData = {};
+
+        socket.onopen = () => {
+            console.log('[wsclient]: WebSocket connected');
+        };
+
+        socket.onmessage = (event) => {
+            const receivedData = event.data;
+            const formattedData = JSON.parse(receivedData);
+
+            const timestamp = formattedData.DT;
+            if (!tableData[timestamp]) {
+                tableData[timestamp] = {};
+            }
+
+            // Update the tableData for the timestamp
+            Object.keys(formattedData).forEach(key => {
+                tableData[timestamp][key] = formattedData[key];
+            });
+
+            // Update the table
+            updateTable();     
+        };
+
+        socket.onclose = () => {
+            console.log('[wsclient]: WebSocket connection closed');
+        };
+
+        // Update the table display based on tableData
+        function updateTable() {
+            const displayTable = document.getElementById('data-display');
+            displayTable.innerHTML = ''; // Clear table body
+
+            const timestamps = Object.keys(tableData);
+
+            // Create header row dynamically based on available keys
+            let headerRow = document.createElement('tr');
+            if (timestamps.length > 0) {
+                const keys = Object.keys(tableData[timestamps[0]]);
+                keys.forEach(key => {
+                    const th = document.createElement('th');
+                    if (Array.isArray(tableData[timestamps[0]][key])) {
+                        for (let i = 1; i <= tableData[timestamps[0]][key].length; i++) {
+                            const subKey = `${key}[${i}]`;
+                            const subTh = document.createElement('th');
+                            subTh.textContent = subKey;
+                            headerRow.appendChild(subTh);
+                        }
+                    } else {
+                        th.textContent = key;
+                        headerRow.appendChild(th);
+                    }
+                });
+                displayTable.appendChild(headerRow);
+            }
+
+            // Reverse timestamps to add the latest data at the top
+            timestamps.reverse().forEach(timestamp => {
+                const dataForRow = tableData[timestamp];
+                const valuesRow = document.createElement('tr');
+
+                Object.keys(dataForRow).forEach(key => {
+                    const cellData = dataForRow[key];
+                    if (Array.isArray(cellData)) {
+                        cellData.forEach(val => {
+                            const arrayTd = document.createElement('td');
+                            arrayTd.textContent = val;
+                            valuesRow.appendChild(arrayTd);
+                        });
+                    } else {
+                        const td = document.createElement('td');
+                        td.textContent = cellData;
+                        valuesRow.appendChild(td);
+                    }
+                });
+
+                displayTable.appendChild(valuesRow);
+            });
+        }
+
+        function downloadCSV() {
+            const rows = document.querySelectorAll('#data-display tr');
+            let csvContent = 'data:text/csv;charset=utf-8,';
+
+            // Get table headers
+            const headerRow = document.querySelector('#data-display tr:first-child');
+            const headers = [];
+            headerRow.childNodes.forEach(cell => {
+                headers.push(cell.textContent);
+            });
+            csvContent += headers.join(',') + '\n';
+
+            rows.forEach(row => {
+                const rowData = [];
+                const cols = row.querySelectorAll('td');
+                cols.forEach(col => {
+                    rowData.push(col.textContent);
+                });
+                csvContent += rowData.join(',') + '\n';
+            });
+
+            const encodedURI = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedURI);
+            link.setAttribute('download', 'table_data.csv');
+            document.body.appendChild(link);
+            link.click();
+        }
+    </script>
+</body>
+</html>

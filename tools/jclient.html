@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Receiver</title>
+    <style>
+        /* Optional: Styling for better visualization */
+        .section-header {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .data-section {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    Hello from HTML    
+    <div class="data-section">
+        <div class="section-header">RawData</div>
+        <div id="raw-data-display"></div>
+    </div>
+
+    <div class="data-section" id="json1-data-section">
+        <div class="section-header">[JSON 1]: JSON.stringify(RawData)</div>
+        <div id="json1-data-display"></div>
+    </div>
+
+    <div class="data-section" id="json2-data-section">
+        <div class="section-header">[JSON 2]: JSON.stringify(JSON.parse(RawData))</div>
+        <div id="json2-data-display"></div>
+    </div>
+ 
+     <!-- Button to reset/clear div contents -->
+    <button onclick="clearDivs()">Clear Divs</button>
+
+ <!-- Button to toggle visibility of json1-data-display -->
+    <button onclick="toggleJson1Visibility()">Toggle JSON 1 Display</button>
+
+ <!-- Button to toggle visibility of json2-data-display -->
+    <button onclick="toggleJson2Visibility()">Toggle JSON 2 Display</button>
+
+     
+    <script>
+        const socket = new WebSocket('ws://localhost:8080'); // Adjust URL if needed
+
+        socket.onopen = () => {
+            console.log('[wsclient]: WebSocket connected');
+        };
+
+        socket.onmessage = (event) => {
+            const receivedData = event.data;
+            let JsonreceivedData;
+            let displayError = false;
+
+            document.getElementById('raw-data-display').innerText += receivedData; //mind the += (append) operator. Replace with = for data replacement.
+            document.getElementById('json1-data-display').innerText += JSON.stringify(receivedData) + '\n';
+
+            try {
+                JsonreceivedData = JSON.parse(event.data);
+            } catch (error) {
+                displayError = true;
+                JsonreceivedData = null; // Reset parsed data on error
+                console.error('[wsclient]: JSON Parse Error:', error.message); // Log the specific error
+                //document.getElementById('json1-data-display').innerText += error.message + '\n';
+                document.getElementById('json2-data-display').innerText += error.message + '\n';
+            }
+
+            if (!displayError) {
+                document.getElementById('json2-data-display').innerText += JSON.stringify(JsonreceivedData) + '\n';
+            }
+        };
+
+        socket.onclose = () => {
+            console.log('[wsclient]: WebSocket connection closed');
+        };
+        
+        function clearDivs() {
+            document.getElementById('raw-data-display').innerText = '';
+            document.getElementById('json1-data-display').innerText = '';
+            document.getElementById('json2-data-display').innerText = '';
+        }
+        
+        function toggleJson1Visibility() {
+            const json1Section = document.getElementById('json1-data-section');
+            if (json1Section.style.display === 'none') {
+                json1Section.style.display = 'block';
+            } else {
+                json1Section.style.display = 'none';
+            }
+        }
+
+        function toggleJson2Visibility() {
+            const json2Section = document.getElementById('json2-data-section');
+            if (json2Section.style.display === 'none') {
+                json2Section.style.display = 'block';
+            } else {
+                json2Section.style.display = 'none';
+            }
+        }
+        
+    </script>
+</body>
+</html>

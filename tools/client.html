@@ -7,8 +7,8 @@
 </head>
 <body>
     Hello from HTML    
-    <div id="data-display"></div>
-    
+    <div id="raw-data-display"></div>
+ 
     <script>
         const socket = new WebSocket('ws://localhost:8080'); // Adjust URL if needed
 
@@ -18,11 +18,9 @@
 
         socket.onmessage = (event) => {
             const receivedData = event.data;
-          //const receivedData = JSON.parse(event.data);
 
             // Update your web page with the received data
-          //document.getElementById('data-display').innerText = JSON.stringify(receivedData);
-            document.getElementById('data-display').innerText = receivedData;
+            document.getElementById('raw-data-display').innerText = receivedData;
         };
 
         socket.onclose = () => {

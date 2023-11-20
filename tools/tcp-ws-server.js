@@ -35,17 +35,33 @@ const tcpServer = net.createServer((socket) => {
   console.log(`[tcp-srv]: Data sender connected ${TCPClientIP}`);
 
   socket.on('data', (data) => {
-    const jsonData = data.toString(); // Assuming JSON data is received as a string
-    console.log(`[tcp-srv]: Received data from data sender ${TCPClientIP}:`, jsonData);
+    const IncomingData = data.toString(); 
+    console.log(`[tcp-srv]: Received data from data sender ${TCPClientIP}:`, IncomingData);
 
     // Broadcast the received data to all WebSocket clients
     clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
-        client.send(jsonData);
+        client.send(IncomingData);
       }
     });
   });
+  
 
+/*
+  let buffer = Buffer.alloc(0); // Initialize an empty buffer to accumulate incoming data
+  socket.on('data', (data) => {
+	buffer = Buffer.concat([buffer, data]); // Concatenate incoming data to the buffer
+    const stringData = buffer.toString();
+    console.log(`[tcp-srv]: Received data from data sender ${TCPClientIP}:`, stringData);
+    // Broadcast the received data to all WebSocket clients
+    clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(stringData); // Sending the received data as-is
+      }
+    });
+    buffer = Buffer.alloc(0); // Reset the buffer after sending
+   });
+*/
   socket.on('end', () => {
     console.log(`[tcp-srv]: Data sender ${TCPClientIP} disconnected`);
   });
