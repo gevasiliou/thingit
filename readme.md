@@ -47,11 +47,14 @@ As soon as data are sent by the data-senders to API Server, those data are publi
 html clients that using javascript establishe connection to our websocket server (ws)  inside resrapi-ws-http.js server.
 
 Different implementations of client files:  
-**raw-client.html** :   Is connected on WebSocket server and every time new data are received by ws those data are displayed on web page.   
-                        Data are printed as raw json string and also as key-val pairs   
-                        
-**table-client.html** : Presentation of the json in table view. Works only for a specific json format   
-                        {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}  
+**raw-client.html**      : Is connected on WebSocket server and every time new data are received by ws those data are displayed on web page.   
+                           Data are printed as raw json string and also as key-val pairs   
+
+**dt-group-client.html** : specific for json including DT (date-time) as the first field, and groups one or more json received under the same "DT" value.  
+
+**table-client.html** : Specific for json including DT (date-time) as the first field. Presentation of the json in table view. 
+                        Even if more than one json are received (with same DT) those are "groupped" in the same table row.    
+                        JSON example with DT: {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}  
                         Also check **table-client2.html**  
 
 **chart-client.html** : Chart presentation of the json values received in a specific json format   
@@ -91,7 +94,12 @@ Tested with FW version: RUT9XX_R_00.06.08.6 and 06.08.5
 
 Teltonika Settings to retrieve modbus registers data by GE350 Device and send them to server.   
 
-**Services -> Modebus -> Modbus TCP Master**     
+Teltonika is equipped with two different services:  
+* one service collects modbus data from slaves (data-collector)   
+* a second service send those data to remote server (data-sender)    
+
+
+**Services -> Modebus -> Modbus TCP Master** (data collector)    
 Name: GE350    
 Slave ID: 254    
 IP: 192.168.1.168   
@@ -108,7 +116,7 @@ Register Count: 3
 Enabled: Checked   
 
 
-**Services -> Modbus -> Modbus Data to Server**   
+**Services -> Modbus -> Modbus Data to Server** (data-sender)   
 This has to be enabled with following parameters:    
 Record Format: {"DT":"%d","%r":%a}   
 Record Count: 1   
@@ -118,12 +126,22 @@ Data Filtering: All Data
 Retry on fail : enabled   
 Custom Header : Content-Type: application/json    
 
-`tip`: 
+`tip 1`: 
 Pay attention to the Record/JSON Format and the use of "correct" double quotes, especially when you try to post in dweet.io   
 It has been proved that in some cases we had wrong type of double quotes.  
 ps: I really don't know how someone can echo wrong double quotes....   
 With wrong type of double quotes data-sender to dweet.io fails.  
 Theoritically, if you copy-paste above record format you should be fine for dweet.io  
+
+`tip 2`:
+It has been proved that "data collector" stores the modbus data in a local file.  
+If the data collector is requested to gather more registers those values are stored as separate json strings in this file.
+I would expect Teltonika to combine the data received on the same timestamp and transmit one big json, but this is not how Teltonika works.   
+"Data sender" sends one, two, or more separate json strings (depending on the data saved by the data-collector) and all those json string will have the same DT timestamp.  
+
+`tip 3`:
+If the data collector service collects data every 15 seconds from slave and write those data to local file, then if data sender is adjusted to "send" data  
+every 60 seconds, the sender will send 4 strings - each string will have it's own DT stamp.  
 
 **Record Format Explanation by Teltonika**    
 {"DT":"%d","%r":%a}    

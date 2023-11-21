@@ -22,7 +22,7 @@
             const displayDiv = document.getElementById('data-display');
             
             // Clear previous content
-            // displayDiv.innerHTML = '';
+            displayDiv.innerHTML = '';
 
             // Display the raw JSON string
             const rawJsonDiv = document.createElement('div');
@@ -46,17 +46,7 @@
                     displayDiv.appendChild(keyValueDiv);
                 }
             }
-/*             // Insert a new line (empty div) after each data set
-            const newLine = document.createElement('div');
-            displayDiv.appendChild(newLine);
         };
-*/        
-            // Insert a separator
-            const separatorDiv = document.createElement('div');
-            separatorDiv.innerText = '---------------------------------------------------------';
-            displayDiv.appendChild(separatorDiv);
-         };   
-
         
         socket.onclose = () => {
             console.log('[wsclient]: WebSocket connection closed');

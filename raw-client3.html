@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Receiver</title>
+</head>
+<body>
+    Hello from HTML    
+    <div id="data-display"></div>
+    
+    <script>
+        const socket = new WebSocket('ws://localhost:8080'); // Adjust URL if needed
+
+        socket.onopen = () => {
+            console.log('[wsclient]: WebSocket connected');
+        };
+
+        const messagesByTimestamp = {};
+
+        socket.onmessage = (event) => {
+            const receivedData = event.data;
+            const formattedData = JSON.parse(receivedData);
+
+            // Get the timestamp
+            const timestamp = formattedData.DT;
+
+            // Store messages by timestamp
+            if (!messagesByTimestamp[timestamp]) {
+                messagesByTimestamp[timestamp] = [];
+            }
+            messagesByTimestamp[timestamp].push(formattedData);
+
+            // Clear previous content
+            const displayDiv = document.getElementById('data-display');
+            displayDiv.innerHTML = '';
+
+            // Loop through stored messages by timestamp and display them
+            for (const ts in messagesByTimestamp) {
+                if (Object.hasOwnProperty.call(messagesByTimestamp, ts)) {
+                    const messages = messagesByTimestamp[ts];
+
+                    messages.forEach((msg, index) => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.innerText = `Message ${index + 1} Raw JSON: ${JSON.stringify(msg)}`;
+                        displayDiv.appendChild(messageDiv);
+                    });
+
+                    // Display combined data for messages with the same timestamp
+                    if (messages.length > 0) {
+                        const combinedDataDiv = document.createElement('div');
+                        combinedDataDiv.innerText = `DT = ${ts}`;
+                        messages.forEach((msg, index) => {
+                            for (const key in msg) {
+                                if (Object.hasOwnProperty.call(msg, key) && key !== 'DT') {
+                                    const value = msg[key];
+                                    if (Array.isArray(value)) {
+                                        value.forEach((item, idx) => {
+                                            const keyValueDiv = document.createElement('div');
+                                            keyValueDiv.innerText = `${key}-[${idx + 1}] = ${item}`;
+                                            combinedDataDiv.appendChild(keyValueDiv);
+                                        });
+                                    } else {
+                                        const keyValueDiv = document.createElement('div');
+                                        keyValueDiv.innerText = `${key} = ${value}`;
+                                        combinedDataDiv.appendChild(keyValueDiv);
+                                    }
+                                }
+                            }
+                        });
+                        displayDiv.appendChild(combinedDataDiv);
+                    }
+
+                    // Insert a separator
+                    const separatorDiv = document.createElement('div');
+                    separatorDiv.innerText = '-------------------------';
+                    displayDiv.appendChild(separatorDiv);
+                }
+            }
+        };
+
+        socket.onclose = () => {
+            console.log('[wsclient]: WebSocket connection closed');
+        };
+    </script>
+</body>
+</html>
