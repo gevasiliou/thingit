@@ -157,10 +157,10 @@ Register data (JSON object) - %a
 Request name - %r   
 Slave name - %n   
 
-`tip`: If you need to include more modbus registers, do not create more modbus-senders to server.  
+tip: If you need to include more modbus registers, do not create more modbus-senders to server.  
 Just edit `Modbus TCP Master - Requests Configuration` and add more registers in this sections.  
 It has been proved that all requests are logged inside teltonika as a separate line of the same file  
-(same timestamp, different description, different values).  
+(same timestamp, different description, different values) and data sender will send all the json lines at once (separate messages sent, same timestamp as retrieved by modbus read)  
 
 `example`:   
 ```
@@ -168,10 +168,10 @@ It has been proved that all requests are logged inside teltonika as a separate l
 [restapi] Remote IP  ::ffff:10.0.0.1  - Data Received with POST: { DT: '20/11/2023 16:03:45', Power: [ 1115 ] }
 [restapi] Remote IP  ::ffff:10.0.0.1  - Data Received with POST: { DT: '20/11/2023 16:03:45', 'Current1-2-3': [ 32, 31, 31 ] }
 ```
-Those three messages are separate json, have the same DT and received by Teltonika Data Sender.
 
 ## Sources - Docs - Tips 
-- https://www.piesocket.com/blog/nodejs-websocket    
+- https://www.piesocket.com/blog/nodejs-websocket
+- https://github.com/Freeboard/thingproxy/    
 - https://reqbin.com/post-online
 - https://reqbin.com/req/v0crmky0/rest-api-post-example    
 - https://reqbin.com/req/curl/y49bnbn3/test-json-response-online    
