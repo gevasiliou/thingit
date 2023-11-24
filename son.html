@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>JSON Fetcher</title>
+  <script>
+    function fetchJSON() {
+      const url = document.getElementById('jsonURL').value;
+
+      fetch(url)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok.');
+          }
+          return response.json();
+        })
+        .then(data => {
+          const jsonContainer = document.getElementById('jsonContainer');
+          jsonContainer.innerText = JSON.stringify(data, null, 2);
+        })
+        .catch(error => {
+          const jsonContainer = document.getElementById('jsonContainer');
+          jsonContainer.innerText = 'Error fetching JSON: ' + error.message;
+        });
+    }
+  </script>
+</head>
+<body>
+  <h1>JSON Fetcher</h1>
+  <form onsubmit="event.preventDefault(); fetchJSON();">
+    <label for="jsonURL">Enter JSON URL:</label><br>
+    <input type="text" id="jsonURL" name="jsonURL" style="width: 300px;"><br><br>
+    <button type="submit">Fetch JSON</button>
+  </form>
+  <div id="jsonContainer" style="margin-top: 20px; white-space: pre;"></div>
+</body>
+</html>
