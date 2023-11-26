@@ -232,3 +232,45 @@ Receives either "post" or "get" requests by IoT devices and prints raw and parse
 This API will break if the data send by data-senders are not valid json.  
 As a result this restapi.js can be actually used for "server-side json verification"  
 
+**jsonfetcher.html**
+A simple html page that can fetch (request) json from apis.
+For testing you can use the https://dummyjson.com/ which provides
+
+## ModbusTools Folder ##
+In this folder we hold various tools for modbus testing.
+
+**onlinemodbusmaster.html & onlinemodbusmaster.js**
+This page provides an interface for the user to apply IP/Hostname for the Modbus Slave and as well as other parameters.  
+The data provided here are transferred (with POST) to the relevant backend server onlinemodbusmaster.js.   
+nodejs server using the `modbus-serial` module retrieves register data from the required modbus tcp slave and those data are returning  
+(as a response) to the html page.   
+First start the server by commandline using node onlinemodbusmaster.js   
+You should see a message server is up and running on port 3000  
+Then open the onlinemodbusmaster.html page , provided the required parameters and press the "Retrieve Data" Button.  
+In a few seconds, you should see in html page the values of the requested registers.  
+
+**modbustcpmaster.js**
+This is a nodejs server file, can run as standalone and can accept various options by command line.  
+```
+Usage: node script.js [options]
+
+Options:
+      --version      Show version number  [boolean]
+      --ip           Modbus slave IP or hostname  [string] [required]
+      --port         Modbus TCP port  [number] [default: 502]
+      --serial       Modbus serial address  [number] [default: 1]
+      --reg          Start register address  [number] [required]
+      --count        Number of registers to read  [number] [default: 1]
+      --regfunction  Modbus function (inputregister/holdingregister)  [string] [default: "inputregister"]
+      --autoread     Interval in milliseconds for autoreading registers  [number]
+  -h, --help         Show help  [boolean]
+
+Missing required arguments: ip, reg
+```
+Typical usage for "one-shot" register reading:  
+node modbustcpmaster.js --ip xx.ddns.net --reg 358  
+
+Combine with --autoread XXX and the server will keep reading registers every XXX mseconds.  
+
+Inside modbustcpmaster.js there is a websocket server running ready to serve dynamically html pages.
+Just open modbustcpmaster.html and the results read from nodejs server will be displayed in your browser.

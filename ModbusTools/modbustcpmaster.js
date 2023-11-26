@@ -1,41 +1,6 @@
-/* 
-const ModbusRTU = require('modbus-serial');
-
-// Create a Modbus client
-const client = new ModbusRTU();
-
-// Set the Modbus slave device IP and port
-const slaveIP = '149.210.4.224'; // Replace with your Modbus TCP slave IP
-const slavePort = 502; // Modbus TCP port
-
-// Connect to the Modbus TCP slave
-client.connectTCP(slaveIP, { port: slavePort })
-  .then(() => {
-    // Read input registers 
-    const startAddress = 358;
-    const quantity = 3;
-
-    client.readInputRegisters(startAddress, quantity)
-      .then(data => {
-        // Output received data in specified format
-        for (let i = 0; i < quantity; i++) {
-          const registerValue = data.data[i];
-          console.log(`[${startAddress + i}]: ${registerValue}`);
-        }
-        client.close(); // Close the connection after reading
-      })
-      .catch(err => {
-        console.error('Error reading:', err);
-        client.close(); // Close the connection if there's an error
-      });
-  })
-  .catch(err => {
-    console.error('Connection failed:', err);
-  });
-*/
-
 const ModbusRTU = require('modbus-serial');
 const yargs = require('yargs');
+const WebSocket = require('ws');
 
 // Create a Modbus client
 const client = new ModbusRTU();
@@ -85,6 +50,25 @@ const argv = yargs
 // Extract arguments
 const { ip, port, serial, reg, count, regfunction, autoread } = argv;
 
+//const wss = new WebSocket.Server({ port: 8080 }); // Change the port as needed
+
+// Function to send data to WebSocket clients
+const sendDataToClients = (data) => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+};
+
+// Function to close WebSocket server after a timeout
+const closeServerIfNoConnection = () => {
+  if (wss.clients.size === 0) {
+    console.log('No WebSocket clients connected. Closing the server.');
+    wss.close();
+  }
+};
+
 // Function to read registers with timestamp
 const readRegisters = () => {
   client.setID(serial);
@@ -97,6 +81,7 @@ const readRegisters = () => {
             for (let i = 0; i < count; i++) {
               const registerValue = data.data[i];
               console.log(`[${timestamp}],[${reg + i}],${registerValue}`);
+              sendDataToClients({timestamp,register: reg + i,value: registerValue});
             }
             client.close();
             if (autoread) {
@@ -125,5 +110,23 @@ const readRegisters = () => {
     });
 };
 
+
+// Create a WebSocket server
+const wss = new WebSocket.Server({ port: 8080 });
+
+// WebSocket server handling
+wss.on('connection', (ws) => {
+  console.log('WS Client connected to WebSocket server');
+  ws.on('close', () => {
+    console.log('WS Client disconnected');
+  });
+});
+
+
+// Set timeout to check for connected clients and close the server if none are present
+// setTimeout(closeServerIfNoConnection, 30000); // Adjust timeout duration  
+// Above code works ok and ws server is closed if no ws client is connected within 30 seconds.
+// But closing the ws server will not allow your html page to run if you open it after ws server close!
+// keeping the we server running on the background you can open your html file anytime, considering that server is started with --autoread
 // Start reading registers
 readRegisters();
