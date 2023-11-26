@@ -5,7 +5,7 @@ const WebSocket = require('ws');
 const client = new ModbusRTU();
 
 // Set the Modbus slave device IP and port
-const slaveIP = '192.168.1.168'; // Replace with your Modbus TCP slave IP
+const slaveIP = '149.210.4.224'; // Replace with your Modbus TCP slave IP
 const slavePort = 502; // Modbus TCP port
 
 // Connect to the Modbus TCP slave

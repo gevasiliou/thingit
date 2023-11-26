@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Modbus Configuration</title>
+</head>
+<body>
+    <h1>Online Modbus TCP Master </h1>
+    <h4>Make sure that onlinemodbusmaster.js is running on your server</h4>
+    
+    <label for="clientIP">Modbus TCP Slave IP/Hostname:</label>
+    <input type="text" id="clientIP" placeholder="Enter Modbus TCP Slave IP or Hostname"><br><br>
+
+    <label for="clientPort">Modbus TCP Slave Port:</label>
+    <input type="number" id="clientPort" placeholder="Enter Modbus TCP Slave Port"><br><br>
+
+    <label for="modbusFunction">Modbus Function:</label>
+    <select id="modbusFunction">
+        <option value="readHoldingRegisters">Read Holding Registers</option>
+        <option value="readInputRegisters">Read Input Registers</option>
+        <!-- Add other Modbus functions as needed -->
+    </select><br><br>
+
+    <label for="firstRegister">First Modbus Register to fetch:</label>
+    <input type="number" id="firstRegister" placeholder="Enter First Modbus Register"><br><br>
+
+    <label for="numRegisters">Number of Registers to fetch:</label>
+    <input type="number" id="numRegisters" placeholder="Enter Number of Registers"><br><br>
+
+    <label for="serialAddress">Modbus Slave Serial Address:</label>
+    <input type="number" id="serialAddress" placeholder="Enter Modbus Serial Address"><br><br>
+
+    <button onclick="sendModbusRequest()">Retrieve Data</button>
+
+    <div id="dataContainer">
+        <!-- Display retrieved data here -->
+    </div>
+
+
+    <script>
+		
+    async function sendModbusRequest() {
+            const clientIP = document.getElementById('clientIP').value;
+            const clientPort = document.getElementById('clientPort').value;
+            const modbusFunction = document.getElementById('modbusFunction').value;
+            const firstRegister = parseInt(document.getElementById('firstRegister').value);
+            const numRegisters = parseInt(document.getElementById('numRegisters').value);
+            const serialAddress = parseInt(document.getElementById('serialAddress').value);
+
+            // Construct the request body
+            const requestBody = {
+                clientIP,
+                clientPort,
+                modbusFunction,
+                firstRegister,
+                numRegisters,
+                serialAddress, // Include the serial address in the request body
+            };
+        
+        const dataContainer = document.getElementById('dataContainer');
+		dataContainer.innerHTML = '';
+/*
+        try {
+            const response = await fetch('http://localhost:3000/readModbus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+
+            const responseData = await response.json();
+
+            // Display retrieved data
+            const dataContainer = document.getElementById('dataContainer');
+            // Check the structure of the received data and display accordingly
+            if (responseData && responseData.data) {
+                // Display the data properties or elements based on the structure
+                if (Array.isArray(responseData.data)) {
+                    dataContainer.innerHTML = `<p>Retrieved data: [${responseData.data.join(', ')}]</p>`;
+                } else if (typeof responseData.data === 'object') {
+                    // If it's an object, display its properties
+                    const dataProperties = Object.entries(responseData.data)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join('<br>');
+                    dataContainer.innerHTML = `<p>Retrieved data: <br>${dataProperties}</p>`;
+                } else {
+                    dataContainer.innerHTML = `<p>Retrieved data: ${responseData.data}</p>`;
+                }
+            } else {
+                dataContainer.innerHTML = '<p>No data received.</p>';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+*/
+
+try {
+        const response = await fetch('http://localhost:3000/readModbus', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                clientIP,
+                clientPort,
+                modbusFunction,
+                firstRegister,
+                numRegisters,
+                serialAddress
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+
+        const responseData = await response.json();
+
+        // Display retrieved data
+        if (responseData && responseData.data) {
+            const data = responseData.data.data; // Access the 'data' property
+            if (Array.isArray(data)) {
+                data.forEach((value, index) => {
+                    const registerNumber = firstRegister + index;
+                    const line = document.createElement('p');
+                    line.textContent = `[${registerNumber}] = ${value}`;
+                    dataContainer.appendChild(line);
+                });
+            } else {
+                const errorLine = document.createElement('p');
+                errorLine.textContent = 'Invalid data format.';
+                dataContainer.appendChild(errorLine);
+            }
+        } else {
+            const noDataMessage = document.createElement('p');
+            noDataMessage.textContent = 'No data received.';
+            dataContainer.appendChild(noDataMessage);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+    </script>
+</body>
+</html>
