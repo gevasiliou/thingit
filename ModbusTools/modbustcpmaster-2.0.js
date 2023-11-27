@@ -180,8 +180,8 @@ const readRegisters = () => {
         .then(data => {
           for (let i = 0; i < count; i++) {
             const registerValue = data.data[i];
-            console.log(`[${timestamp}],[${reg + i}],${registerValue}`);
-            if (autoread) { sendDataToClients({ timestamp, register: reg + i, value: registerValue });}
+            console.log(`${ip},[${timestamp}],[${reg + i}],${registerValue}`);
+            if (autoread) { sendDataToClients({ ip, timestamp, register: reg + i, value: registerValue });}
         	dataToSave.push({ ip: ip, timestamp: timestamp, register: reg + i, value: registerValue});
           }
           client.close();
