@@ -1,5 +1,5 @@
 # modbus-serial
-source: https://github.com/yaacov/node-modbus-serial/tree/master
+source: https://github.com/yaacov/node-modbus-serial/tree/master  
 A pure JavaScript implementation of MODBUS-RTU (Serial and TCP) for NodeJS.
 
 [![NPM download](https://img.shields.io/npm/dm/modbus-serial.svg)](http://www.npm-stats.com/~packages/modbus-serial)
