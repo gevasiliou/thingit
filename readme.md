@@ -232,9 +232,15 @@ Receives either "post" or "get" requests by IoT devices and prints raw and parse
 This API will break if the data send by data-senders are not valid json.  
 As a result this restapi.js can be actually used for "server-side json verification"  
 
-**jsonfetcher.html**
-A simple html page that can fetch (request) json from apis.
-For testing you can use the https://dummyjson.com/ which provides
+**jsonfetcher.html**  
+A simple html page that can fetch (request) json from apis.  
+For testing you can use the https://dummyjson.com/ which provides dummy json for testing.  
+dummyjson has a lot of categories to fetch jsons :  
+```
+fetch('https://dummyjson.com/products/1')
+.then(res => res.json())
+.then(json => console.log(json))
+```
 
 ## ModbusTools Folder ##
 In this folder we hold various tools for modbus testing.
@@ -248,8 +254,9 @@ First start the server by commandline using node onlinemodbusmaster.js
 You should see a message server is up and running on port 3000  
 Then open the onlinemodbusmaster.html page , provided the required parameters and press the "Retrieve Data" Button.  
 In a few seconds, you should see in html page the values of the requested registers.  
+Source of nodejs module: `https://github.com/yaacov/node-modbus-serial`  
 
-**modbustcpmaster.js**
+**modbustcpmaster-2.0.js**
 This is a nodejs server file, can run as standalone and can accept various options by command line.  
 ```
 Usage: node script.js [options]
@@ -263,14 +270,30 @@ Options:
       --count        Number of registers to read  [number] [default: 1]
       --regfunction  Modbus function (inputregister/holdingregister)  [string] [default: "inputregister"]
       --autoread     Interval in milliseconds for autoreading registers  [number]
+      --runonce      Read the registers once and exit  [boolean] [default: true]
+      --csvfile      Name of the CSV file to store register values  [string]
+      --jsonfile     Name of the JSON file to store register values  [string]
   -h, --help         Show help  [boolean]
 
 Missing required arguments: ip, reg
 ```
+
 Typical usage for "one-shot" register reading:  
-node modbustcpmaster.js --ip xx.ddns.net --reg 358  
+node modbustcpmaster-2.0.js --ip xx.ddns.net --reg 358  
 
 Combine with --autoread XXX and the server will keep reading registers every XXX mseconds.  
+In case --autoread is not provided (or if --runonce is provided) the scripts reads the modbus registers just once and exits.  
 
-Inside modbustcpmaster.js there is a websocket server running ready to serve dynamically html pages.
-Just open modbustcpmaster.html and the results read from nodejs server will be displayed in your browser.
+Inside script file there is a websocket server running ready to serve dynamically html pages.
+This websocket server is started only when --autoread is provided, otherwise (runonce mode) websocket server is not enabled.  
+To see the register values in your browser, open fie modbustcpmaster.html (only working in --autoread mode)
+
+File **modbustcpmaster-1.0.js** in this folder is the early version of this script, missing some features like runonce logic, save to csv/json file.  
+
+#TODO#
+We can expand this server nodejs script and html page by adding some more features like bellow:
+- in html client open and display contents of saved csv/json  
+- send the collected modbus register data to another server / client / api (software modbus data sender)  
+- make script to work as an answering REST api by providing json responses to the requestor.  
+- expand the script to be capable to read settings saved to a setting file i.e using an argument like --settings <settings-file>  
+- expand the script to be capable to retrieve modbus registers by more than one host. Could be something like --ip (array of hostnames)  

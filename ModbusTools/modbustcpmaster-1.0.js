@@ -8,6 +8,7 @@ const client = new ModbusRTU();
 // Parsing command line arguments using yargs
 const argv = yargs
   .usage('Usage: node script.js [options]')
+  .version('1.0') // Specify your script version here
   .option('ip', {
     description: 'Modbus slave IP or hostname',
     type: 'string',
@@ -69,6 +70,7 @@ const closeServerIfNoConnection = () => {
   }
 };
 
+/*
 // Function to read registers with timestamp
 const readRegisters = () => {
   client.setID(serial);
@@ -101,6 +103,59 @@ const readRegisters = () => {
         console.error('Invalid Modbus function specified.');
         client.close();
       }
+    })
+    .catch(err => {
+      console.error('Connection failed:', err);
+      if (autoread) {
+        setTimeout(readRegisters, autoread); // Schedule next read even if connection failed
+      }
+    });
+};
+
+*/
+
+const readRegisters = () => {
+  client.setID(serial);
+  client.connectTCP(ip, { port })
+    .then(() => {
+      const timestamp = new Date().toISOString();
+      let registerReadFunction;
+
+      switch (regfunction) {
+        case 'inputregister':
+          registerReadFunction = client.readInputRegisters;
+          console.log('Reading Input Registers');
+          break;
+        case 'holdingregister':
+          registerReadFunction = client.readHoldingRegisters;
+          console.log('Reading Holding Registers');
+          break;
+        // Add more cases for other Modbus functions as needed
+        default:
+          console.error('Invalid Modbus function specified.');
+          client.close();
+          return;
+      }
+
+      registerReadFunction.call(client, reg, count)
+        .then(data => {
+          for (let i = 0; i < count; i++) {
+            const registerValue = data.data[i];
+            console.log(`[${timestamp}],[${reg + i}],${registerValue}`);
+            sendDataToClients({ timestamp, register: reg + i, value: registerValue });
+          }
+          client.close();
+          if (autoread) {
+            setTimeout(readRegisters, autoread); // Schedule next read
+          }
+        })
+        .catch(err => {
+          console.error(`Error reading ${regfunction} Registers:`, err);
+          client.close();
+          if (autoread) {
+            setTimeout(readRegisters, autoread); // Schedule next read
+          }
+        });
     })
     .catch(err => {
       console.error('Connection failed:', err);
