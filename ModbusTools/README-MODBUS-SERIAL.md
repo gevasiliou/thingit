@@ -108,9 +108,9 @@ function read() {
     client.readHoldingRegisters(5, 2)
         .then(console.log);
 }
-```
+````
 ----
-###### Read on multiple slaves
+###### Read on multiple slaves  
 ``` javascript
 const ModbusRTU = require("modbus-serial");
 // create an empty modbus client
@@ -163,7 +163,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // start get value
 getMetersValue(metersIdList);
 
-```
+````
 ----
 ###### Logger Serial
 ``` javascript
@@ -182,7 +182,7 @@ setInterval(function() {
         console.log(data.data);
     });
 }, 1000);
-```
+````
 ----
 ###### Logger TCP
 ``` javascript
@@ -201,7 +201,7 @@ setInterval(function() {
         console.log(data.data);
     });
 }, 1000);
-```
+````
 ----
 ###### Logger UDP
 ``` javascript
@@ -220,7 +220,7 @@ setInterval(function() {
         console.log(data.data);
     });
 }, 1000);
-```
+````
 ----
 ###### ModbusTCP Server
 ``` javascript
@@ -276,7 +276,7 @@ serverTCP.on("socketError", function(err){
     // Handle socket error if needed, can be ignored
     console.error(err);
 });
-```
+````
 ----
 ###### Read and Write Modbus ASCII
 ``` javascript
@@ -308,7 +308,7 @@ function read() {
     client.readHoldingRegisters(5, 2)
         .then(console.log);
 }
-```
+````
 ----
 
 
