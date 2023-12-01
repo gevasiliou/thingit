@@ -3,7 +3,7 @@ const express = require('express');
 const net = require('net');
 const path = require('path');
 const app = express();
-const cors = require('cors'); // Import the 'cors' module
+const cors = require('cors'); // Import the 'cors' Cross Origin module
 const ModbusRTU = require('modbus-serial');
 const client = new ModbusRTU();
 
@@ -57,7 +57,7 @@ app.post('/readModbus', async (req, res) => {
     } finally {
         if (client.isOpen) {
             await client.close();
-            console.log('client close');
+            console.log('Modbus device client close');
         }
     }
 });
