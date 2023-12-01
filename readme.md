@@ -1,65 +1,68 @@
 # THINGIT #    
 
 ## Introduction to dweet.io ##
-If you are not familiar with dweet.io this platform allows almost anything to send data to dweet.io either by post or by get methods.  
-An API can send json data to dweet.io using post.   
+For those not familiar already with dweet.io, this platform allows almost anything to send data to dweet.io either by post or by get methods.  
+A "sending" API can send json data to dweet.io using post.   
 A program / user / whatever can send data to dweet.io using the GET format like bellow:  
-https://dweet.io/dweet/for/thing/a-thing-name/?key1=value1&key2=value2    
+*https://dweet.io/dweet/for/thing/a-thing-name/?key1=value1&key2=value2*    
 (tip: Combine aboce command with curl and see the results)    
-dweet sends a success response json back   
+
+dweet sends a success response in json format back to the data-sender.   
 You can see the data received for 'a-thing-name' by visiting https://dweet.io/follow/a-thing-name  
 dweet.io for the time being is free - free version has limited history tracking and the "dweets" are public for every = no privacy    
 
 ## Introduction to Thingit ##
-'Thingit' is an attempt to create a platform similar to dweet.io    
-Just for fun we call this project as "thingit", by the word "thing" (IoT).    
+'Thingit' is an attempt to create a platform similar to dweet.io, but also providing more tools to the users.    
+We call this project as "thingit", by the word "thing" (IoT) and "it" = any thing out there that can send us data.    
 
 "Thingit" will accept data (either json data or key=val pairs) received by POST or GET by Data senders (apis, sensors, routers, etc).   
 Those data will be available to anyone, just by visiting a simple web page.   
-This web page will be dynamically updated and display the keys-values as received by "data-senders".  
+The html (client) page will be dynamically updated and display the keys-values pairs as received by "data-senders".  
 
-## Primary Concepts ##
-For this purpose we have built a nodejs "REST API" server that listens for data.
-See the server description bellow for more details.
+## Primary Concepts ##   
+Based on our research we have bellow basic APIs:     
+- Typical API: An intermediate app, accepts requests by the users, collects the requested data by the API server and responds back to the requestor with json the required data.   
+- API Server: A Server in listen mode , listen for requests and respond to those requests with json data, usually retrieved by a database.   
 
-You need to have node.js and npm (nodejs packet manager) installed in your machine to make this server work.  
+When dealing with IoT we have   
+- REST APIS: Can be any app exchanging / serving json data in all directions:   
+             - collecting data by data sender and print/store/these data   
+             - sending data to user upon request (collected by somewhere like database or live)  
+
+- Data-Sender: Continuously sending data in json format to any listening server.    
+
+
+ThingIt is actually a REST API Server customized to accept json by data-senders, print this json and also forward this json received to html clients.  
+
+You need to have node.js and npm (nodejs packet manager) installed in your machine to make ThingIt work.  
 Also you need to install the followind nodejs modules:  
 `npm install ws path http express body-parser`  
 
 
 ## Server Setup ##
-Usage: `node restapi-ws-http.js`  
-The server file `restapi-ws-http.js` actually contains three different services:  
-- API Server - port 3000, using node express module, to allow data-senders to get connected and stream data
-- WebSocket Server - port 8080, using node ws module, to allow html pages to get connected 
+`node restapi-ws-http.js`  
+The server `restapi-ws-http.js` actually contains three different services:  
+- REST API Listening Server - port 3000, using node express module, receives data by data-senders 
+- WebSocket Server - port 8080, using node ws module, to allow html pages to get connected to nodejs server 
 - http Web Server - port 8888, using node http module, to serve the client (html) file to browsers.  
 
-REST API Server listens for incoming data with POST or GET method by data-senders and extracts the json from the data stream   
+REST API Server listens for incoming data received using POST or GET method by data-senders and extracts the json from the data stream   
+json extracted can be printed or sent to html page. 
 
-WebSocket Server is used by web pages - html files that are connected to websocket server of restapi server.   
-As soon as restapi receives data by data sender, those data are published to all connected clients (web pages)   
+WebSocket Server is used by web pages - html files - Those html pages are connected to websocket server of restapi server.   
+As soon as API Listening Server receives data by "data senders" these data are published to all connected clients (web pages)   
 
-HTTP Web Server , serves the html file to your browser. Just open your browswer and visit localhost:8888/rawclient.html   
-html client using javascript get connected to websocket (ws) server of restapi server. 
-As soon as data are sent by the data-senders to API Server, those data are published by WebSocket Server to websocket clients (html pages) and those data will be displayed in your browser.  
+HTTP Web Server, serves the html pages to your browser. Just open your browswer and visit localhost:8888/rawclient.html   
+html client using javascript gets connected to websocket (ws) server of restapi server. 
+As soon as data are sent by the data-senders to API Server, these data are published by WebSocket Server to websocket clients (html pages) and those data will be displayed in your browser.  
 
-## HTML Clients ##
-html clients that using javascript establishe connection to our websocket server (ws)  inside resrapi-ws-http.js server.
+## HTML Client ##
+html page / client using javascript to establish connection to our websocket server (ws) in resrapi-ws-http.js server.
 
-Different implementations of client files:  
 **raw-client.html**      : Is connected on WebSocket server and every time new data are received by ws those data are displayed on web page.   
                            Data are printed as raw json string and also as key-val pairs   
 
-**dt-group-client.html** : specific for json including DT (date-time) as the first field, and groups one or more json received under the same "DT" value.  
-
-**table-client.html** : Specific for json including DT (date-time) as the first field. Presentation of the json in table view. 
-                        Even if more than one json are received (with same DT) those are "groupped" in the same table row.    
-                        JSON example with DT: {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}  
-                        Also check **table-client2.html**  
-
-**chart-client.html** : Chart presentation of the json values received in a specific json format   
-                        {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}  
-                        If more than one json strings are received with the same DT, they are groupped based on their DT value  
+For different implementations of client files check the tools folder. 
 
 ## Testing ## 
 1. Start the server in command line : `node restapi-ws-http.js`   
@@ -170,12 +173,13 @@ It has been proved that all requests are logged inside teltonika as a separate l
 ```
 
 ## Sources - Docs - Tips 
-- https://www.piesocket.com/blog/nodejs-websocket
+- https://www.piesocket.com/blog/nodejs-websocket  
+- https://blog.postman.com/how-to-create-a-rest-api-with-node-js-and-express/  
 - https://github.com/Freeboard/thingproxy/    
-- https://reqbin.com/post-online
+- https://reqbin.com/post-online  
 - https://reqbin.com/req/v0crmky0/rest-api-post-example    
 - https://reqbin.com/req/curl/y49bnbn3/test-json-response-online    
-- Javascript Method (in html client) to update 'data-display':  
+- Javascript Method (in html client) to update 'data-display':   
 ```
         socket.onmessage = (event) => {       
         const receivedData = JSON.parse(event.data);       
@@ -189,15 +193,30 @@ You have to add customer header "Content-Type: application/json" for correct par
 ## Tools Folder ##
 Various server and client files for troubleshooting and experiments.
 
+
+**dt-group-client.html** : html client working with main ThingIt server `restapi-ws-http.js` - Works for a specific json format including date-time (DT) as the first field.    
+                           This client groups one or more json received under the same "DT" value.  
+                           JSON example with DT: {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}   
+
+**table-client.html** : html client specific for json including DT (date-time) as the first field.   
+                        Presentation of the json in table view. 
+                        Even if more than one json are received with same DT, those jsons are "groupped" in the same table row.    
+                        JSON example with DT: {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}   
+                        Also check **table-client2.html**  
+
+**chart-client.html** : Chart presentation of the json values received in a specific json format   
+                        {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}   
+                        If more than one json strings are received with the same DT, they are groupped based on their DT value  
+
 **tcp-server.js**    
 Usage *node tcp-server.js* - Simple tcp listening server.  
 You can connect to this tcp-server using as a client *telnet localhost 8080* .   
 Every message typed in telnet window will be sent to tcp-server and the tcp-server will send the same message back to client.  
-Actually even real data senders can get connected to this tcp-server.js and nodejs will just print out the messages received.  
+Actually even real data senders like Teltonika can get connected to this tcp-server.js and nodejs will just print out the messages received.  
 It is equivalent to **ncat -l -k -p 8080**    
 
-**tcp-ws-server.js**    
-This is a nodejs file that actually loads `net` and `ws` nodejs modules creating two separate servers:  
+**tcp-ws-server.js & jclient.html**    
+`tcp-ws-server.js` is a nodejs server that actually uses `net` and `ws` nodejs modules creating two separate servers:  
 - WebSocket Server (nodejs ws module) for Connection of our html page at port 8080  
 - TCP (nodejs net module) server for connection of the data senders at port 3000
 
@@ -205,9 +224,8 @@ TCP server receives data from TCP port and forward/sends/broadcast those data to
 In this implementation, data received by TCP can be anything (texts, messages, invalid json) and will be forwarded to ws clients.
 Run the server on linux command line with node.js like this: *node server.js*    
 
-**jclient.html**  
-This is an html web page (client) retrieving data using javascript by `tcp-ws-server.js`  
-It gets connected to WebSocket (ws) server running inside `tcp-ws-server.js` and updates **dynamically** the contents of the web page when new data are sent by ws server.   
+`jclient.html` is an html web page (client) retrieving data by `tcp-ws-server.js` using javascript.  
+jclient.html gets connected to WebSocket (ws) server running inside `tcp-ws-server.js` and updates **dynamically** the contents of the web page when new data are sent by ws server.   
 You have to manually open this file in your browser (i.e File - Open -> Select client.html)   
 Tip: If you don't see the Toolbar Top Menu on your browser just hit "alt" inside browser since it is common this toolbar to be hidden.   
 Make sure that browser developer console is open (i.e Developer Tools in FireFox) since console.log messages and errors appear in this console.    
@@ -220,20 +238,21 @@ jclient contains three sections:
 Quite usefull tool for server debugging and json format debugging.   
 PS: File client.html is similar to jclient.html but only raw data are displayed - no json validation in this tool.
     
-**ws-server.js** and **ws-client.html**       
-Usage *node ws-server.js* - Just a WebSocket Server   
-Connect to ws-server with ws-client.html (in browswer select File -> Open -> Select html file in your browser window)    
+**ws-server.js & ws-client.html**       
+`ws-server.js` It is just a WebSocket Server   
+`ws-client.html` is the corresponding html client - open it in browswer (File -> Open -> Select html file in your browser window)    
 Just make sure to have browser console open to see the corresponding server/client connection messages.   
      
 **restapi.js**   
-Usage *node restapi.js*   
-A Generic restapi, working as a server.     
-Receives either "post" or "get" requests by IoT devices and prints raw and parsed json content on the screen (server window).   
-This API will break if the data send by data-senders are not valid json.  
-As a result this restapi.js can be actually used for "server-side json verification"  
+`node restapi.js`   
+A Generic listening -server- api.     
+Receives json strings by "post" or "get" requests send by data-senders, users, etc.   
+json strings received are printed on cli screen both in raw and parsed json format.   
+This API will break if the data send by data-senders are not valid json.   
+As a result this restapi.js can be actually used for "server-side json verification"   
 
 **jsonfetcher.html**  
-A simple html page that can fetch (request) json from apis.  
+A simple html page that can fetch (request) json from listening apis.  
 For testing you can use the https://dummyjson.com/ which provides dummy json for testing.  
 dummyjson has a lot of categories to fetch jsons :  
 ```
@@ -245,18 +264,18 @@ fetch('https://dummyjson.com/products/1')
 ## ModbusTools Folder ##
 In this folder we hold various tools for modbus testing.
 
-**onlinemodbusmaster.html & onlinemodbusmaster.js**
-This page provides an interface for the user to apply IP/Hostname for the Modbus Slave and as well as other parameters.  
-The data provided here are transferred (with POST) to the relevant backend server onlinemodbusmaster.js.   
-nodejs server using the `modbus-serial` module retrieves register data from the required modbus tcp slave and those data are returning  
-(as a response) to the html page.   
-First start the server by commandline using node onlinemodbusmaster.js   
+**onlinemodbusmaster.html & onlinemodbusmaster.js**  
+This html page provides an interface for the user to apply IP/Hostname for the Modbus Slave and as well as other modbus related parameters.  
+The data provided in this html page are transferred (with POST) to the relevant backend server onlinemodbusmaster.js.   
+This backend nodejs server use `modbus-serial` module to retrieve registers values from the required modbus tcp slave; those values are returning  
+(as a response to previous POST) back to the html page.   
+First start the server by commandline using `node onlinemodbusmaster.js`   
 You should see a message server is up and running on port 3000  
-Then open the onlinemodbusmaster.html page , provided the required parameters and press the "Retrieve Data" Button.  
-In a few seconds, you should see in html page the values of the requested registers.  
-Source of nodejs module: `https://github.com/yaacov/node-modbus-serial`  
+Then open the onlinemodbusmaster.html page , provide the required parameters and press the "Retrieve Data" Button.  
+In a few seconds, you should see in html page the values of the requested registers.   
+Source of `modbus-serial` module: `https://github.com/yaacov/node-modbus-serial`   
 
-**modbustcpmaster-2.0.js**
+**modbustcpmaster-2.0.js**  
 This is a nodejs server file, can run as standalone and can accept various options by command line.  
 ```
 Usage: node script.js [options]
@@ -275,23 +294,23 @@ Options:
       --jsonfile     Name of the JSON file to store register values  [string]
   -h, --help         Show help  [boolean]
 
-Missing required arguments: ip, reg
 ```
 
 Typical usage for "one-shot" register reading:  
-node modbustcpmaster-2.0.js --ip xx.ddns.net --reg 358  
+`node modbustcpmaster-2.0.js --ip xx.ddns.net --reg 358`  
 
 Combine with --autoread XXX and the server will keep reading registers every XXX mseconds.  
-In case --autoread is not provided (or if --runonce is provided) the scripts reads the modbus registers just once and exits.  
+In case --autoread is not provided (server runs in runonce mode) the scripts reads the modbus registers just once and exits.  
 
-Inside script file there is a websocket server running ready to serve dynamically html pages.
+Inside script file there is a websocket server running ready to dynamically server html pages.
 This websocket server is started only when --autoread is provided, otherwise (runonce mode) websocket server is not enabled.  
 To see the register values in your browser, open fie modbustcpmaster.html (only working in --autoread mode)
 
-File **modbustcpmaster-1.0.js** in this folder is the early version of this script, missing some features like runonce logic, save to csv/json file.  
+File **modbustcpmaster-1.1.js** and **modbustcpmaster-1.2.js** in this folder are early version of this script, missing some features like runonce logic, save to csv/json file,etc  
 
 #TODO#
 We can expand this server nodejs script and html page by adding some more features like bellow:
+- allow backend servers to retrieve modbus data from more than one slaves 
 - in html client open and display contents of saved csv/json  
 - send the collected modbus register data to another server / client / api (software modbus data sender)  
 - make script to work as an answering REST api by providing json responses to the requestor.  

@@ -17,7 +17,7 @@ const wss = new WebSocket.Server({ port: wsPort });
 const httpServer = http.createServer(app);
 
 // Serve static files
-app.use(express.static(path.join(__dirname))); // Serve files from the current directory
+app.use(express.static(path.join(__dirname))); // Serve files to browsers from the current directory
 
 // Array to store connected WebSocket clients
 const clients = [];

@@ -8,7 +8,7 @@ const client = new ModbusRTU();
 // Parsing command line arguments using yargs
 const argv = yargs
   .usage('Usage: node script.js [options]')
-  .version('1.0') // Specify your script version here
+  .version('1.2') // Specify your script version here
   .option('ip', {
     description: 'Modbus slave IP or hostname',
     type: 'string',
