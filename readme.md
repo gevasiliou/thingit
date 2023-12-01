@@ -193,7 +193,6 @@ You have to add customer header "Content-Type: application/json" for correct par
 ## Tools Folder ##
 Various server and client files for troubleshooting and experiments.
 
-
 **dt-group-client.html** : html client working with main ThingIt server `restapi-ws-http.js` - Works for a specific json format including date-time (DT) as the first field.    
                            This client groups one or more json received under the same "DT" value.  
                            JSON example with DT: {"DT":"18/11/2023 06:19:01","Volt1-2-3":[20839,20764,20712]}   
