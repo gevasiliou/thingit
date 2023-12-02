@@ -276,27 +276,33 @@ Source of `modbus-serial` module: `https://github.com/yaacov/node-modbus-serial`
 
 **modbustcpmaster-2.0.js**  
 This is a nodejs server file, can run as standalone and can accept various options by command line.  
+
 ```
+nodejs ./ModbusTools/modbustcpmaster-2.1.js 
 Usage: node script.js [options]
 
 Options:
       --version      Show version number  [boolean]
       --ip           Modbus slave IP or hostname  [string] [required]
-      --port         Modbus TCP port  [number] [default: 502]
-      --serial       Modbus serial address  [number] [default: 1]
-      --reg          Start register address  [number] [required]
-      --count        Number of registers to read  [number] [default: 1]
+  -p, --port         Modbus TCP port  [number] [default: 502]
+  -s, --serial       Modbus serial address  [number] [default: 1]
+  -r, --reg          Start register address  [number] [required]
+  -c, --count        Number of registers to read  [number] [default: 1]
       --regfunction  Modbus function (inputregister/holdingregister)  [string] [default: "inputregister"]
-      --autoread     Interval in milliseconds for autoreading registers  [number]
+  -a, --autoread     Interval in milliseconds for autoreading registers  [number]
       --runonce      Read the registers once and exit  [boolean] [default: true]
       --csvfile      Name of the CSV file to store register values  [string]
       --jsonfile     Name of the JSON file to store register values  [string]
+      --printjson    Print on cli JSON format of register values/data  [boolean] [default: false]
   -h, --help         Show help  [boolean]
+
+Missing required arguments: ip, reg
+
 
 ```
 
 Typical usage for "one-shot" register reading:  
-`node modbustcpmaster-2.0.js --ip xx.ddns.net --reg 358`  
+`node modbustcpmaster-2.0.js --ip xx.ddns.net --reg 358 --count 3 --serial 254 --printjson`  
 
 Combine with --autoread XXX and the server will keep reading registers every XXX mseconds.  
 In case --autoread is not provided (server runs in runonce mode) the scripts reads the modbus registers just once and exits.  
