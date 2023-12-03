@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Table and Graph</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    #upper {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    #lower {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 90%;
+      margin: 20px auto;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+      border: 1px solid #dddddd;
+      text-align: center;
+      padding: 10px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    canvas {
+      max-width: 90%;
+      max-height: 90%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="upper">
+    <table id="history-table">
+      <!-- Table content will be generated here -->
+    </table>
+  </div>
+
+  <div id="lower">
+    <canvas id="graph"></canvas>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Fetch JSON data using the fetch API
+    fetch('https://b526772d5e26248dc7d8952b8d4d5551.balena-devices.com/info')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Extract history from the wind object
+        const historyData = data.wind.history;
+
+        // Create a table structure
+        const table = document.getElementById('history-table');
+
+        // Create header row
+        const headerRow = table.createTHead().insertRow(0);
+        const headers = ['ID', 'Wind(angle)', 'Time', 'Updated'];
+        headers.forEach(headerText => {
+          const th = document.createElement('th');
+          th.textContent = headerText;
+          headerRow.appendChild(th);
+        });
+
+        // Create table body with data rows in reverse order
+        const tbody = document.createElement('tbody');
+        const keys = Object.keys(historyData);
+        for (let i = keys.length - 1; i >= 0; i--) {
+          const rowData = historyData[keys[i]];
+          const row = tbody.insertRow();
+          row.insertCell().textContent = keys[i];
+          row.insertCell().textContent = rowData.angle;
+          row.insertCell().textContent = rowData.time;
+          row.insertCell().textContent = rowData.updated;
+        }
+        table.appendChild(tbody);
+
+        // Generate data for graph
+        const angles = keys.map(key => historyData[key].angle);
+        const times = keys.map(key => historyData[key].time);
+
+        // Create a graph using Chart.js
+        const ctx = document.getElementById('graph').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: times,
+            datasets: [{
+              label: 'Angle Values',
+              data: angles,
+              borderColor: 'blue',
+              backgroundColor: 'transparent',
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Time',
+                }
+              },
+              y: {
+                display: true,
+                title: {
+                  display: true,
+                  text: 'Angle',
+                }
+              }
+            }
+          }
+        });
+      })
+      .catch(error => {
+        console.error('There was a problem fetching the data:', error);
+      });
+  </script>
+
+</body>
+</html>

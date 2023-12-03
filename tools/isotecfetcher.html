@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>JSON Fetcher</title>
+</head>
+<body>
+
+  <div id="history-container">
+    <!-- History data will be displayed here -->
+  </div>
+
+  <script>
+    // Fetch JSON data using the fetch API
+    fetch('https://b526772d5e26248dc7d8952b8d4d5551.balena-devices.com/info')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Extract history from the wind object
+        const historyData = data.wind.history;
+
+        // Display history data
+        const historyContainer = document.getElementById('history-container');
+        historyContainer.innerText = JSON.stringify(historyData, null, 2);
+      })
+      .catch(error => {
+        console.error('There was a problem fetching the data:', error);
+      });
+  </script>
+
+</body>
+</html>
