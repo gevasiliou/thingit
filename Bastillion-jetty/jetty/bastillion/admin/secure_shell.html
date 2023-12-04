@@ -1,0 +1,682 @@
+<!--/**
+ *    Copyright (C) 2013 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta th:replace="_res/inc/header">
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+
+        $(document).ready(function () {
+
+            $.ajaxSetup({cache: false, async:false});
+
+            //get instance id list from selected terminals
+            function getActiveTermsInstanceIds() {
+                var ids = [];
+                $(".run_cmd_active").each(function (index) {
+                    var id = $(this).attr("id").replace("run_cmd_", "");
+                    ids.push(id);
+                });
+                return ids;
+            }
+
+
+            $('#upload_push_dialog').on('hidden.bs.modal', function () {
+                $("#upload_push_frame").attr("src", "");
+            });
+
+            $(".termwrapper").sortable({
+                connectWith: ".run_cmd",
+                handle: ".term-header",
+                zIndex: 10000,
+                helper: 'clone'
+            });
+
+            //submit
+            $(".submit_btn").button().click(function () {
+                [# th:if= "${pendingSystemStatus != null && pendingSystemStatus.id != null}"]
+                    $(this).parents('.modal').find('form').submit();
+                [/]
+                $(this).parents('.modal').modal('hide');
+            });
+
+            //close all forms
+            $(".cancel_btn").button().click(function () {
+                window.location = 'getNextPendingSystemForTerms.ktrl?pendingSystemStatus.id=' + /*[[${pendingSystemStatus.id}]]*/ ''
+                    [# th:if= "${script != null && script.id > 0}"]
+                        +'&script.id=' + /*[[${script.id}]]*/ ''
+                    [/]
+                    + '&_csrf=' + [[${session._csrf}]];
+            });
+
+            //disconnect terminals and remove from view
+            $('#disconnect').click(function () {
+                var ids = getActiveTermsInstanceIds();
+                for (var i = 0; i < ids.length; i++) {
+                    var id = ids[i];
+                    $.ajax({
+                        url: '../admin/disconnectTerm.ktrl?id=' + id + '&_csrf=' + [[${session._csrf}]],
+                        cache: false
+                    });
+                    $('#run_cmd_' + id).remove();
+                    termMap[id].dispose();
+                    delete termMap[id];
+                }
+
+            });
+
+            //select all
+            $('#select_all').click(function () {
+                $(".run_cmd").addClass('run_cmd_active');
+            });
+
+
+            //upload frame dialog
+            $('#upload_push').click(function () {
+
+
+                var ids = [];
+                $(".run_cmd_active").each(function (index) {
+                    var id = $(this).find(".host").attr("data-bs-hostId");
+                    if (ids.indexOf(id) === -1) {
+                        ids.push(id);
+                    }
+                });
+
+                var idListStr = '?_csrf=' + [[${session._csrf}]];
+                ids.forEach(function (entry) {
+                    idListStr = idListStr + '&idList=' + entry;
+                });
+
+                $("#upload_push_frame").attr("src", "setUpload.ktrl" + idListStr);
+                new bootstrap.Modal($("#upload_push_dialog")).show();
+            });
+
+            [# th:if= "${currentSystemStatus != null && (#strings.equals(currentSystemStatus.statusCd, 'GENERICFAIL') || #strings.equals(currentSystemStatus.statusCd, 'HOSTFAIL'))}"]
+                new bootstrap.Modal($("#error_dialog")).show();
+            [/]
+            [# th:if= "${pendingSystemStatus != null && pendingSystemStatus.id != null && (currentSystemStatus == null || (!#strings.equals(currentSystemStatus.statusCd, 'GENERICFAIL') && !#strings.equals(currentSystemStatus.statusCd, 'HOSTFAIL')) )}"]
+                [# th:if= "${ #strings.equals(pendingSystemStatus.statusCd, 'AUTHFAIL')}"]
+                    new bootstrap.Modal($("#set_password_dialog")).show();
+                [/]
+
+                [# th:if= "${#strings.equals(pendingSystemStatus.statusCd, 'KEYAUTHFAIL')}"]
+                    new bootstrap.Modal($("#set_passphrase_dialog")).show();
+                [/]
+
+                [# th:if= "${currentSystemStatus == null || (!#strings.equals(pendingSystemStatus.statusCd, 'AUTHFAIL') && !#strings.equals(pendingSystemStatus.statusCd, 'KEYAUTHFAIL')&& !#strings.equals(pendingSystemStatus.statusCd, 'GENERICFAIL'))}"]
+                    $("#composite_terms_frm").submit();
+                [/]
+            [/]
+
+            [# th:if= "${pendingSystemStatus == null || pendingSystemStatus.id == null}"]
+
+            $('#dummy').focus();
+            var keys = {};
+
+            var termFocus = true;
+            $(document).keypress(function (e) {
+                if (termFocus) {
+                    var keyCode = (e.keyCode) ? e.keyCode : e.charCode;
+
+                    if (String.fromCharCode(keyCode) && String.fromCharCode(keyCode) !== ''
+                        && (!e.ctrlKey || e.altKey) && !e.metaKey && !keys[27] && !keys[37]
+                        && !keys[38] && !keys[39] && !keys[40] && !keys[13] && !keys[8] && !keys[9]
+                        && !keys[46] && !keys[45] && !keys[33] && !keys[34] && !keys[35] && !keys[36]) {
+                        var cmdStr = String.fromCharCode(keyCode);
+                        connection.send(JSON.stringify({id: getActiveTermsInstanceIds(), command: cmdStr}));
+                    }
+
+                }
+            });
+            //function for command keys (ie ESC, CTRL, etc..)
+            $(document).keydown(function (e) {
+                if (termFocus) {
+                    var keyCode = (e.keyCode) ? e.keyCode : e.charCode;
+                    keys[keyCode] = true;
+
+                    //27 - ESC
+                    //37 - LEFT
+                    //38 - UP
+                    //39 - RIGHT
+                    //40 - DOWN
+                    //13 - ENTER
+                    //8 - BS
+                    //9 - TAB
+                    //17 - CTRL
+                    //46 - DEL
+                    //45 - INSERT
+                    //33 - PG UP
+                    //34 - PG DOWN
+                    //35 - END
+                    //36 - HOME
+                    if ((e.ctrlKey && !e.altKey) || keyCode === 27 || keyCode === 37 || keyCode === 38 || keyCode === 39 || keyCode === 40 || keyCode === 13 || keyCode === 8 || keyCode === 9 || keyCode === 46 || keyCode === 45 || keyCode === 33 || keyCode === 34 || keyCode === 35 || keyCode === 36) {
+                        connection.send(JSON.stringify({id: getActiveTermsInstanceIds(), keyCode: keyCode}));
+                    }
+
+                    //prevent default for unix ctrl commands
+                    if (e.ctrlKey && (keyCode === 83 || keyCode === 81 || keyCode === 84 || keyCode === 220 || keyCode === 90 || keyCode === 72 || keyCode === 87 || keyCode === 85 || keyCode === 82 || keyCode === 68)) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+
+                }
+
+            });
+
+            $(document).keyup(function (e) {
+                var keyCode = (e.keyCode) ? e.keyCode : e.charCode;
+                delete keys[keyCode];
+                if (termFocus) {
+                    $('#dummy').focus();
+                }
+            });
+
+            $(document).click(function (e) {
+                if (termFocus && !$('body').hasClass('modal-open')) {
+                    $('#dummy').focus();
+                }
+            });
+
+
+            //get cmd text from paste
+            $(this).bind('paste', function (e) {
+                $('#dummy').focus();
+                $('#dummy').val('');
+                setTimeout(function () {
+                    var cmdStr = $('#dummy').val();
+                    connection.send(JSON.stringify({id: getActiveTermsInstanceIds(), command: cmdStr}));
+                }, 100);
+            });
+
+
+            var termMap = {};
+            var fitMap = {};
+
+
+            $("#reset_size").click(function () {
+                resetSize();
+            });
+
+            function resetSize() {
+                var ids = getActiveTermsInstanceIds();
+                for (var i = 0; i < ids.length; i++) {
+                    var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+                    $("#output_" + ids[i]).width((w - 125)/2);
+                    $("#output_" + ids[i]).height(346 + y_offset);
+                    resize($("#output_" + ids[i]));
+                }
+            }
+
+            //resize element during drag event. Makes call to set pty width and height
+            function resize(element) {
+                var id = element.attr("id").replace("output_", "");
+
+                if (termMap[id]) {
+                    var width = Math.floor($('#output_' + id).innerWidth() - 20);
+                    var height = Math.floor($('#output_' + id).innerHeight() - y_offset);
+
+                    $.ajax({
+                        url: '../admin/setPtyType.ktrl?id=' + id + '&userSettings.ptyWidth=' + width + '&userSettings.ptyHeight=' + height + '&_csrf=' + [[${session._csrf}]],
+                        cache: false
+                    });
+                    fitMap[id].fit();
+                }
+
+            }
+
+            var loc = window.location, ws_uri;
+            if (loc.protocol === "https:") {
+                ws_uri = "wss:";
+            } else {
+                ws_uri = "ws:";
+            }
+            ws_uri += "//" + loc.host + loc.pathname + '/../terms.ws?t=' + new Date().getTime();
+
+            var connection = new WebSocket(ws_uri);
+
+            function heartbeat() {
+                if (!connection) return;
+                if (connection.readyState !== 1) return;
+                connection.send("heartbeat");
+
+                // Set heartbeat interval 10,000 ms
+                setTimeout(heartbeat, 10000);
+            };
+
+            // Register websocket heartbeat
+            connection.onopen = function (e) {
+                heartbeat();
+            };
+
+            // Log errors
+            connection.onerror = function (error) {
+                console.log('WebSocket Error ' + error);
+            };
+
+            // Log messages from the server
+            connection.onmessage = function (e) {
+                var json = jQuery.parseJSON(e.data);
+                $.each(json, function (key, val) {
+                    if (val.output != '') {
+                        if (!termMap[val.instanceId]) {
+                            createTermMap(val.instanceId, val.output);
+                            resetSize();
+                        } else {
+                            termMap[val.instanceId].write(val.output);
+                        }
+                    }
+
+                });
+            };
+
+            function createTermMap(id, output) {
+
+                var  CUSTOM_THEME =
+                    {
+                    [# th:if= "${userSettings != null && userSettings.bg != null}"]
+                        background: [[${userSettings.bg}]],
+                    [/]
+                    [# th:if= "${userSettings != null && userSettings.bg != null}"]
+                        foreground: [[${userSettings.fg}]],
+                        cursor: [[${userSettings.fg}]],
+                        cursorAccent: [[${userSettings.fg}]],
+                    [/]
+                    [# th:if= "${userSettings !=null && userSettings.colors != null && userSettings.colors.length == 16}"]
+                        black: [[${userSettings.colors[0]}]],
+                        red: [[${userSettings.colors[1]}]],
+                        green: [[${userSettings.colors[2]}]],
+                        yellow: [[${userSettings.colors[3]}]],
+                        blue: [[${userSettings.colors[4]}]],
+                        magenta: [[${userSettings.colors[5]}]],
+                        cyan: [[${userSettings.colors[6]}]],
+                        white: [[${userSettings.colors[7]}]],
+                        brightBlack: [[${userSettings.colors[8]}]],
+                        brightRed: [[${userSettings.colors[9]}]],
+                        brightGreen: [[${userSettings.colors[10]}]],
+                        brightYellow: [[${userSettings.colors[11]}]],
+                        brightBlue: [[${userSettings.colors[12]}]],
+                        brightMagenta: [[${userSettings.colors[13]}]],
+                        brightCyan: [[${userSettings.colors[14]}]],
+                        brightWhite: [[${userSettings.colors[15]}]]
+                    [/]
+                    };
+
+                termMap[id] = new Terminal({
+                    fontSize: 14,
+                    'theme': CUSTOM_THEME,
+                    'cursorStyle' : 'bar',
+                    'cursorWidth' : '10',
+                    'cursorInactiveStyle' : 'bar',
+                    fontFamily: 'DejaVu Sans Mono, Liberation Mono, monospace'
+                });
+
+                fitMap[id] = new FitAddon.FitAddon()
+                termMap[id].loadAddon(fitMap[id])
+
+                termMap[id].open($("#run_cmd_" + id).find('.output').get(0));
+
+
+                termMap[id].write(output);
+
+
+            }
+
+            //function to set all terminal bindings when creating a term window
+            function setTerminalEvents(element) {
+
+                //if terminal window toggle active for commands
+                element.mousedown(function (e) {
+                    //check for cmd-click / ctr-click
+                    if (!e.ctrlKey && !e.metaKey) {
+                        $(".run_cmd").removeClass('run_cmd_active');
+                    }
+
+                    if (element.hasClass('run_cmd_active')) {
+                        element.removeClass('run_cmd_active');
+                    } else {
+                        element.addClass('run_cmd_active')
+                    }
+                });
+
+                //set focus to term
+                $(".output").mouseup(function (e) {
+                    if (window.getSelection().toString()) {
+                        termFocus = false;
+                    } else {
+                        termFocus = true;
+                    }
+                });
+
+                $(".output").bind('copy', function () {
+                    setTimeout(function () {
+                        termFocus = true;
+                        window.getSelection().removeAllRanges();
+                    }, 100);
+                });
+
+                //set resizable
+                $(".output").resizable({
+                    ghost: true,
+                    stop: function (event, ui) {
+                        resize($(this));
+                    }
+                });
+            }
+
+            //returns div for newly created terminal element
+            function createTermElement(instanceId, hostId, displayLabel) {
+                var instance =
+                    "<div id=\"run_cmd_" + instanceId + "\" class=\"run_cmd_active run_cmd\">"
+                    + "<h6 class=\"term-header\">" + displayLabel + "</h6>"
+                    + "<div class=\"term\">"
+                    + "<div id=\"output_" + instanceId + "\" class=\"output\"></div>"
+                    + "</div>"
+                    + "<div data-bs-hostId=\"" + hostId + "\" class=\"host\"></div>"
+                    + "</div>";
+                return instance;
+            }
+
+            //function clones terminals based on active
+            var newInstanceId = -1;
+            $('#dup_session').click(function () {
+                var instanceIds = getActiveTermsInstanceIds();
+                for (var i = 0; i < instanceIds.length; i++) {
+
+                    var instanceId = instanceIds[i];
+                    var hostId = $('#run_cmd_' + instanceId).find(".host").attr("data-bs-hostId");
+                    var displayLabel = $('#run_cmd_' + instanceId).find(".term-header").text();
+                    var newInstanceId = getNextInstanceId();
+
+                    $(createTermElement(newInstanceId, hostId, displayLabel)).insertAfter($('#run_cmd_' + instanceId));
+
+                    setTerminalEvents($("#run_cmd_" + newInstanceId));
+
+
+                    //call server to create instances - returned the new cloned instance id
+                    $.getJSON('../admin/createSession.ktrl?systemSelectId=' + hostId + '&_csrf=' + [[${session._csrf}]]);
+
+
+                }
+
+            });
+
+            //function that connects to allocated hosts
+            $('.connect_btn').click(function () {
+
+                var hostId = $('#connectHostId').val();
+                var newInstanceId = getNextInstanceId();
+                var displayLabel = $('#connectHostId option:selected').text();
+
+                $(createTermElement(newInstanceId, hostId, displayLabel)).prependTo(".termwrapper");
+
+                setTerminalEvents($("#run_cmd_" + newInstanceId));
+
+                //call server to create instances - returned the new cloned instance id
+                $.getJSON('../admin/createSession.ktrl?systemSelectId=' + hostId + '&_csrf=' + [[${session._csrf}]]);
+
+
+            });
+
+            //returns next instance id
+            function getNextInstanceId() {
+                var newInstanceId = 1;
+
+                for (var i = 1; i <= $('.run_cmd').length; i++) {
+
+                    if ($("#run_cmd_" + i).length === 0) {
+                        newInstanceId = i;
+                        break;
+                    }
+                    newInstanceId++;
+                }
+                return newInstanceId;
+            }
+
+            //set connected systems
+            [# th:each = "s : ${systemList}" ]
+                $(createTermElement([[${s.instanceId}]], [[${s.id}]], [[${s.displayLabel}]])).appendTo(".termwrapper");
+                setTerminalEvents($("#run_cmd_" + [[${s.instanceId}]]));
+            [/]
+
+            var y_offset = $('.run_cmd:first').innerHeight() - $('.run_cmd').find(".output:first").innerHeight();
+            [/]
+
+        });
+
+        /*]]>*/
+    </script>
+
+    <style>
+        .term-container {
+            width: 100%;
+            padding: 10px 0;
+            margin: 0;
+        }
+        .term {
+            background: [[${userSettings.bg}]];
+        }
+
+    </style>
+    <title>Bastillion - Terminals</title>
+</head>
+<body>
+<template th:if="${(systemList != null && !systemList.empty) || pendingSystemStatus.id != null }"
+          th:remove="tag">
+    <div class="navbar navbar-light bg-light fixed-top navbar-expand-md" role="navigation">
+        <div class="container">
+            <div class="navbar-brand">
+                <div class="nav-img">
+                    <img src="/img/bastillion_40x40.png" th:src="@{/img/bastillion_40x40.png}"
+                         alt="bastillion">
+                </div>
+                Bastillion
+            </div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <template th:if="${pendingSystemStatus == null || pendingSystemStatus.id == null}"
+                          th:remove="tag">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a id="select_all" href="#"
+                                                title="Use CMD-Click or CTRL-Click to select multiple individual terminals"
+                                                class="nav-link">Select
+
+                            All</a>
+                        </li>
+                        <li class="dropdown nav-item"><a href="#" class="dropdown-toggle nav-link"
+                                                         data-bs-toggle="dropdown">Terminal Actions<b
+                                class="caret"></b></a>
+                            <ul
+                                    class="dropdown-menu">
+                                <li class="dropdown-item"><a id="upload_push" href="#">Upload &amp; Push</a>
+                                </li>
+                                <li class="dropdown-item"><a id="connect_to_host" data-bs-toggle="modal"
+                                                             data-bs-target="#connect_to_host_dialog"
+                                                             href="#">Connect to Host</a>
+                                </li>
+                                <li class="dropdown-item"><a id="dup_session" href="#">Duplicate Session</a>
+                                </li>
+                                <li class="dropdown-item"><a id="reset_size" href="#">Reset Size</a>
+                                </li>
+                                <li class="dropdown-item"><a id="disconnect" href="#">Disconnect</a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a th:href="'exitTerms.ktrl?_csrf=' + ${session._csrf}"
+                                                class="nav-link">Exit Terminals</a>
+                        </li>
+                    </ul>
+                    <div class="clear"></div>
+                    <div style="float:right;width:1px;height:1px;overflow:hidden">
+                        <textarea name="dummy" id="dummy" size="1"
+                                  style="border:none;color:#FFFFFF;width:1px;height:1px"></textarea>
+                        <input type="text" name="dummy2" id="dummy2" size="1"
+                               style="border:none;color:#FFFFFF;width:1px;height:1px">
+                    </div>
+                </template>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </div>
+    <div class="term-container container">
+        <div class="termwrapper"></div>
+    </div>
+</template>
+<template th:if="${(systemList == null || systemList.empty) && pendingSystemStatus.id == null}"
+          th:remove="tag">
+    <div th:replace="_res/inc/navigation"></div>
+    <div class="container">
+        <h3>Terminals</h3>
+        <p class="error">No sessions could be created</p>
+    </div>
+</template>
+<div id="connect_to_host_dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Connect to Host</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <select id="connectHostId" class="host_frm_select form-select" name="connectHostId" title="Connect to Host">
+                        <option th:each="s : ${allocatedSystemList}" th:value="${s.id}"
+                                th:text="${s.displayLabel}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary connect_btn"
+                        data-bs-dismiss="modal">Connect
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="set_password_dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close cancel_btn" data-bs-dismiss="modal" aria-hidden="true">x</button>
+                <h6 class="modal-title"
+                    th:text="'Enter password for ' + ${pendingSystemStatus.displayLabel}"></h6>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="error" th:if="${pendingSystemStatus.errorMsg != null}"
+                         th:text="'Error: ' + ${pendingSystemStatus.errorMsg}"></div>
+                    <form id="password_frm" th:action="@{/admin/createTerms.ktrl}" method="post">
+                        <input type="hidden" name="_csrf" th:value="${session._csrf}">
+                        <input type="hidden" name="pendingSystemStatus.id" th:value="${pendingSystemStatus.id}">
+                        <table>
+                            <tr>
+                                <td>Password:
+                                </td>
+                                <td>
+                                    <input type="password" name="password" class="form-control" title="Password" size="15" value=""
+                                           autocomplete="off">
+                                </td>
+                            </tr>
+                        </table>
+                        <input type="hidden" name="script.id" th:if="${script != null}" th:value="${script.id}">
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary cancel_btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary submit_btn">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="set_passphrase_dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close cancel_btn" data-bs-dismiss="modal" aria-hidden="true">x</button>
+                <h6 class="modal-title"
+                    th:text="'Enter passphrase for ' + ${pendingSystemStatus.displayLabel}"></h6>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="error" th:if="${pendingSystemStatus.errorMsg != null}"
+                         th:text="'Error: ' + ${pendingSystemStatus.errorMsg}"></div>
+                    <form id="passphrase_frm" th:action="@{/admin/createTerms.ktrl}"
+                          method="post">
+                        <input type="hidden" name="_csrf" th:value="${session._csrf}">
+                        <input type="hidden" name="pendingSystemStatus.id" th:value="${pendingSystemStatus.id}">
+                        <table>
+                            <tr>
+                                <td>Password:
+                                </td>
+                                <td>
+                                    <input type="password" name="passphrase" class="form-control" title="Passphrase" size="15"
+                                           value="" autocomplete="off">
+                                </td>
+                            </tr>
+                        </table>
+                        <input type="hidden" name="script.id" th:if="${script != null}" th:value="${script.id}">
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary cancel_btn" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-secondary submit_btn">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="error_dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" th:text="'System: ' + ${currentSystemStatus.displayLabel}"></h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="error" th:if="${currentSystemStatus.errorMsg != null}"
+                         th:text="'Error: ' + ${currentSystemStatus.errorMsg}"></div>
+                    <form id="error_frm" th:action="@{/admin/createTerms.ktrl}" method="post">
+                        <input type="hidden" name="_csrf" th:value="${session._csrf}">
+                        <input type="hidden" name="pendingSystemStatus.id" th:value="${pendingSystemStatus.id}">
+                        <input type="hidden" name="script.id" th:if="${script != null}" th:value="${script.id}">
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary submit_btn">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="upload_push_dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content" style="width:700px">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload &amp; Push</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <iframe id="upload_push_frame" width="675px" height="300px" style="border: none;"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+<form id="composite_terms_frm" th:action="@{/admin/createTerms.ktrl}"
+      method="post">
+    <input type="hidden" name="_csrf" th:value="${session._csrf}">
+    <input type="hidden" name="pendingSystemStatus.id" th:value="${pendingSystemStatus.id}">
+    <input type="hidden" name="script.id" th:if="${script != null}" th:value="${script.id}">
+</form>
+</body>
+
+</html>

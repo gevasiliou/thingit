@@ -1,0 +1,285 @@
+<!--/**
+ *    Copyright (C) 2013 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta th:replace="_res/inc/header"/>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        $(document).ready(function () {
+
+            $("#filter_btn").button().click(function () {
+                if ($("#filterType").val() === 'U') {
+                    $("#userFilter").val($("#profileFilter").val());
+                    $("#systemFilter").val('');
+                }
+                else {
+                    $("#systemFilter").val($("#profileFilter").val());
+                    $("#userFilter").val('');
+                }
+                $("#viewSystemsFilter").submit();
+            });
+
+            $(".clear_btn").button().click(function () {
+                $("#userFilter").val('');
+                $("#systemFilter").val('');
+                $("#profileFilter").val('');
+                $("#viewSystemsFilter").submit();
+            });
+
+            //call delete action
+            $(".del_btn").button().click(function () {
+                var id = $(this).attr('id').replace("del_btn_", "");
+                window.location = 'deleteProfile.ktrl?profile.id=' + id + '&sortedSet.orderByDirection=' + /*[[${sortedSet.orderByDirection}]]*/ ''
+                    + '&sortedSet.orderByField=' + /*[[${sortedSet.orderByField}]]*/ ''
+                    + '&_csrf=' + [[${session._csrf}]];
+            });
+            //submit add or edit form
+            $(".submit_btn").button().click(function () {
+                $(this).parents('.modal').find('form').submit();
+            });
+
+            $(".sort,.sortAsc,.sortDesc").click(function () {
+                var id = $(this).attr('id')
+
+                var orderDirection = $('#viewProfiles_sortedSet_orderByDirection');
+                if (orderDirection.attr('value') === 'asc') {
+                    orderDirection.attr('value', 'desc');
+                } else {
+                    orderDirection.attr('value', 'asc');
+                }
+                $('#viewProfiles_sortedSet_orderByField').attr('value', id);
+                $("#viewProfiles").submit();
+
+            });
+            [# th:if= "${!#strings.isEmpty(sortedSet.orderByField)}"]
+                $('#' + [[${sortedSet.orderByField}]]).attr('class', [[${sortedSet.orderByDirection}]]);
+            [/]
+
+        });
+        /*]]>*/
+
+    </script>
+    <script th:inline="javascript" th:if="${!#maps.isEmpty(fieldErrors) || !errors.empty}">
+        /*<![CDATA[*/
+        $(document).ready(function () {
+            [# th:if= "${profile.id > 0}"]
+                new bootstrap.Modal($('#edit_dialog_' + [[${profile.id}]])).show();
+            [/]
+
+            [# th:if= "${profile.id <= 0}"]
+                new bootstrap.Modal($("#add_dialog")).show();
+            [/]
+        });
+        /*]]>*/
+
+    </script>
+
+    <title>Bastillion - Manage System Profiles</title>
+</head>
+
+<body>
+<div th:replace="_res/inc/navigation"></div>
+<div class="container">
+    <form id="viewProfiles" th:action="@{/manage/viewProfiles.ktrl}" method="get">
+        <input type="hidden" name="_csrf" th:value="${session._csrf}">
+        <input type="hidden" id="viewProfiles_sortedSet_orderByDirection" name="sortedSet.orderByDirection"
+               th:value="${sortedSet.orderByDirection}">
+        <input type="hidden" id="viewProfiles_sortedSet_orderByField" name="sortedSet.orderByField"
+               th:value="${sortedSet.orderByField}">
+    </form>
+    <h3>Manage System Profiles</h3>
+    Add / Delete profiles or assign users and systems to that profile.
+    <table>
+        <tr>
+            <td class="align_left">
+                <form id="viewSystemsFilter" th:action="@{/manage/viewProfiles.ktrl}"
+                      method="get">
+                    <input type="hidden" name="_csrf" th:value="${session._csrf}">
+                    <input type="hidden" name="sortedSet.orderByDirection" th:value="${sortedSet.orderByDirection}">
+                    <input type="hidden" name="sortedSet.orderByField" th:value="${sortedSet.orderByField}">
+                    <table>
+                        <tr>
+                            <td>
+                                <input type="text" name="sortedSet.filterMap['profile']" id="profileFilter"
+                                       th:value="${sortedSet.filterMap.get('profile')}"
+                                       class="form-control"
+                                       placeholder="Find associated profiles">
+                                <input type="hidden"
+                                       th:name="'sortedSet.filterMap[' + ${@io.bastillion.manage.db.ProfileDB@FILTER_BY_SYSTEM} + ']'"
+                                       id="systemFilter">
+                                <input type="hidden"
+                                       th:name="'sortedSet.filterMap[' + ${@io.bastillion.manage.db.ProfileDB@FILTER_BY_USER} + ']'"
+                                       id="userFilter">
+                            </td>
+                            <td>
+                                <select name="sortedSet.filterMap['filterType']" id="filterType"
+                                        class="form-select" title="Filter Type">
+                                    <option value="S"
+                                            th:selected="${#strings.equals(sortedSet.filterMap.get('filterType'), 'S')}">
+                                        By System
+                                    </option>
+                                    <option value="U"
+                                            th:selected="${#strings.equals(sortedSet.filterMap.get('filterType'), 'U')}">
+                                        By User
+                                    </option>
+                                </select>
+                            </td>
+                            <td>
+                                <div id="filter_btn" class="btn btn-secondary">Filter</div>
+                                <div class="btn btn-secondary clear_btn spacer spacer-right">Clear</div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </td>
+        </tr>
+    </table>
+    <div class="scrollWrapper" th:if="${sortedSet.itemList != null && !sortedSet.itemList.empty}">
+        <table class="table-striped scrollableTable">
+            <thead>
+            <tr>
+                <th th:id="${@io.bastillion.manage.db.ProfileDB@SORT_BY_PROFILE_NM}" class="sort">Profile Name</th>
+                <th>&#xA0;</th>
+            </tr>
+            </thead>
+            <tbody>
+            <template th:each="p : ${sortedSet.itemList}" th:remove="tag">
+                <tr>
+                    <td th:text="${p.nm}"></td>
+                    <td>
+                        <div>
+                            <a th:href="'viewProfileUsers.ktrl?profile.id=' + ${p.id} + '&amp;_csrf=' + ${session._csrf}">
+
+                                <button th:id="'user_assign_btn_' + ${p.id}"
+                                        class="btn btn-secondary edit_btn spacer spacer-left">Assign Users
+
+                                </button>
+                            </a>
+                            <a th:href="'viewProfileSystems.ktrl?profile.id=' + ${p.id} + '&amp;_csrf=' + ${session._csrf}">
+
+                                <button th:id="'system_assign_btn_' + ${p.id}"
+                                        class="btn btn-secondary edit_btn spacer spacer-left">Assign Systems
+
+                                </button>
+                            </a>
+                            <button class="btn btn-secondary spacer spacer-middle"
+                                    data-bs-toggle="modal" th:attr="data-bs-target='#edit_dialog_' + ${p.id}">Edit
+                            </button>
+                            <button th:id="'del_btn_' + ${p.id}"
+                                    class="btn btn-secondary del_btn spacer spacer-right">Delete
+                            </button>
+                            <div style="clear:both"></div>
+                        </div>
+                    </td>
+                </tr>
+            </template>
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-secondary add_btn spacer spacer-bottom" data-bs-toggle="modal"
+            data-bs-target="#add_dialog">Add Profile
+    </button>
+    <div id="add_dialog" class="modal fade">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Profile</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div th:replace="_res/inc/errors"></div>
+                    <form th:action="@{/manage/saveProfile.ktrl}" method="post" class="save_profile_form_add">
+                        <input type="hidden" name="_csrf" th:value="${session._csrf}">
+                        <table>
+                            <tr>
+                                <td>Name
+                                </td>
+                                <td>
+                                    <input type="text" name="profile.nm" th:value="${profile.nm}" class="form-control" title="Name"
+                                           size="15"> <span class="error"
+                                                            th:text="${fieldErrors.get('profile.nm')}"></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Profile Description
+                                </td>
+                                <td>
+                                            <textarea name="profile.desc" class="form-control" th:text="${profile.desc}"
+                                                      title="Profile Description"
+                                                      rows="5" cols="25"></textarea> <span class="error"
+                                                                                           th:text="${fieldErrors.get('profile.desc')}"></span>
+                                </td>
+                            </tr>
+                        </table>
+                        <input type="hidden" name="sortedSet.orderByDirection" th:value="${sortedSet.orderByDirection}">
+                        <input type="hidden" name="sortedSet.orderByField" th:value="${sortedSet.orderByField}">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary cancel_btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary submit_btn">Submit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <template th:each="p : ${sortedSet.itemList}" th:remove="tag">
+        <div th:id="'edit_dialog_' + ${p.id}" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Profile</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div th:replace="_res/inc/errors"></div>
+                            <form th:action="@{/manage/saveProfile.ktrl}" method="post"
+                                  th:id="'save_profile_form_edit_' + ${p.id}">
+                                <input type="hidden" name="_csrf" th:value="${session._csrf}">
+                                <table>
+                                    <tr>
+                                        <td>Name
+                                        </td>
+                                        <td>
+                                            <input type="text" name="profile.nm" th:value="${p.nm}" class="form-control" title="Name"
+                                                   size="15"> <span class="error"
+                                                                    th:text="${fieldErrors.get('profile.nm')}"></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Profile Description
+                                        </td>
+                                        <td>
+                                                    <textarea name="profile.desc" class="form-control" th:text="${p.desc}"
+                                                              title="Profile Description"
+                                                              rows="5" cols="25"></textarea> <span class="error"
+                                                                                                   th:text="${fieldErrors.get('profile.desc')}"></span>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <input type="hidden" name="profile.id" th:value="${p.id}">
+                                <input type="hidden" name="sortedSet.orderByDirection"
+                                       th:value="${sortedSet.orderByDirection}">
+                                <input type="hidden" name="sortedSet.orderByField" th:value="${sortedSet.orderByField}">
+                            </form>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary cancel_btn" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-secondary submit_btn">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
+</body>
+
+</html>

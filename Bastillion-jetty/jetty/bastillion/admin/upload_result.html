@@ -1,0 +1,125 @@
+<!--/**
+ *    Copyright (C) 2013 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:with="isFrame=true">
+    <meta th:replace="_res/inc/header">
+    <title> Bastillion - Upload &amp; Push </title>
+
+    <script th:inline="javascript">
+            /*<![CDATA[*/
+            $(document).ready(function () {
+
+                $(".submit_btn").button().click(function () {
+                    $('#push').submit();
+                });
+
+                var uploadScrollWrapper = $('.uploadScrollWrapper')
+                if (uploadScrollWrapper.height() >= 200) {
+
+                    uploadScrollWrapper.addClass('uploadScrollWrapperActive');
+                    $('.uploadScrollableTable').floatThead({
+                        scrollContainer: function ($table) {
+                            return $table.closest(".uploadScrollWrapper");
+                        }
+                    });
+                }
+                $(".uploadScrollableTable tr:even").css("background-color", "#e0e0e0");
+
+                [# th:if="${pendingSystemStatus != null && pendingSystemStatus.id != null}"]
+                    //set scroll
+                    var container = uploadScrollWrapper;
+                    var scrollTo = $('#status_' + [[${pendingSystemStatus.id}]]);
+                    container.scrollTop(scrollTo.offset() - container.offset() + container.scrollTop() - 55);
+                [/]
+
+                [# th:if="${currentSystemStatus!=null && #strings.equals(currentSystemStatus.statusCd,'GENERICFAIL')}"]
+                    new bootstrap.Modal($("#error_dialog")).show();
+                [/]
+
+                [# th:if="${(currentSystemStatus == null || !#strings.equals(currentSystemStatus.statusCd,'GENERICFAIL')) && pendingSystemStatus != null && pendingSystemStatus.id != null}"]
+                    $('#push').submit();
+                [/]
+            });
+            /*]]>*/
+
+    </script>
+    <style>
+            body {
+                padding: 10px;
+                background: #FFFFFF;
+            }
+
+    </style>
+</head>
+
+<body>
+
+<h4 th:text="'Pushing File: ' + ${uploadFileName}"></h4>
+<div class="uploadScrollWrapper" th:if="${hostSystemList!= null && !hostSystemList.empty}">
+    <table class="table-striped uploadScrollableTable">
+        <thead>
+        <tr>
+            <th>Display Name</th>
+            <th>User</th>
+            <th>Host</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="system : ${hostSystemList}">
+            <td>
+                <div th:id="'status_' + ${system.id}" th:text="${system.displayNm}"></div>
+            </td>
+            <td th:text="${system.user}"></td>
+            <td th:text="${system.host} + ':' + ${system.port}"></td>
+            <td>
+                <div class="warning" th:if="${#strings.equals(system.statusCd,'INITIAL')}">Not Started</div>
+                <div class="warning" th:if="${#strings.equals(system.statusCd,'AUTHFAIL')}">Authentication
+                    Failed
+                </div>
+                <div class="error" th:if="${#strings.equals(system.statusCd,'HOSTFAIL')}">DNS Lookup Failed
+                </div>
+                <div class="warning" th:if="${#strings.equals(system.statusCd,'KEYAUTHFAIL')}">Passphrase
+                    Authentication Failed
+                </div>
+                <div class="error" th:if="${#strings.equals(system.statusCd,'GENERICFAIL')}">Failed</div>
+                <div class="success" th:if="${#strings.equals(system.statusCd,'SUCCESS')}">Success</div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<p class="error" th:if="${hostSystemList == null || hostSystemList.empty}">No systems associated with upload</p>
+<form id="push" th:action="@{/admin/push.ktrl}"
+      method="post">
+    <input type="hidden" name="_csrf" th:value="${session._csrf}">
+    <input type="hidden" name="pushDir" th:value="${pushDir}">
+    <input type="hidden" name="uploadFileName" th:value="${uploadFileName}">
+</form>
+<div id="error_dialog" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" th:text="'System: '+ ${currentSystemStatus.displayLabel}"></h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="error" th:if="${currentSystemStatus.errorMsg != null}"
+                         th:text="'Error: '+ ${currentSystemStatus.errorMsg}"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary submit_btn">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

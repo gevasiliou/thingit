@@ -1,0 +1,69 @@
+<!--/**
+ *    Copyright (C) 2013 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta th:replace="_res/inc/header">
+    <title>Bastillion - Login</title>
+</head>
+
+<body>
+<div class="navbar navbar-light bg-light fixed-top navbar-expand-md" role="navigation">
+    <div class="container">
+        <div class="navbar-brand">
+            <div class="nav-img">
+                <img src="/img/bastillion_40x40.png" th:src="@{/img/bastillion_40x40.png}"
+                     alt="bastillion">
+            </div>
+            Bastillion
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</div>
+<div class="container">
+    <h3></h3>
+    <div th:replace="_res/inc/errors"></div>
+    <form id="loginSubmit" th:action="@{/loginSubmit.ktrl}" method="post"
+          autocomplete="off">
+        <table>
+            <tr>
+                <td>Username:
+                </td>
+                <td>
+                    <input type="text" name="auth.username" class="form-control" title="Username"> <span class="error"
+                                                                                    th:text="${fieldErrors.get('auth.username')}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>Password:
+                </td>
+                <td>
+                    <input type="password" name="auth.password" class="form-control" title="Password"> <span class="error"
+                                                                                        th:text="${fieldErrors.get('auth.password')}"></span>
+                </td>
+            </tr>
+            <tr th:if="${otpEnabled}">
+                <td>OTP Access Code:
+                </td>
+                <td>
+                    <input type="text" name="auth.otpToken" class="form-control" title="OTP Access Code"> <span class="error"
+                                                                                           th:text="${fieldErrors.get('auth.otpToken')}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td>&#xA0;</td>
+                <td>
+                    <div id="login_btn" class="btn btn-secondary submit_btn">Login</div>
+                </td>
+            </tr>
+        </table>
+        <input type="hidden" name="_csrf" th:value="${session._csrf}">
+    </form>
+</div>
+</body>
+
+</html>

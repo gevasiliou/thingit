@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Embedded CLI</title>
+  <style>
+    #terminal-container {
+      width: 100%;
+      height: 400px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      font-color: red;
+      /* Add other necessary styles */
+    }
+  </style>
+  <script src="https://unpkg.com/xterm"></script>
+</head>
+<body>
+  <div id="terminal-container"></div>
+
+  <script>
+    const terminalContainer = document.getElementById('terminal-container');
+    const term = new Terminal();
+    term.open(terminalContainer);
+
+    // Simulate some commands and output
+    term.write('\x1b[31m'); // ANSI escape code for red text
+    term.write('Red text!\r\n');
+    term.write('Welcome to the embedded CLI!\r\n');
+    term.write('$ ls\r\nfile1.txt file2.txt\r\n');
+    term.write('$ echo "Hello, World!"\r\nHello, World!\r\n');
+
+    // You can handle user input and execute commands here
+    // For a functional CLI, you'll need to handle input events, execute commands, and display output accordingly
+  </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!--/**
+ *    Copyright (C) 2015 Loophole, LLC
+ *
+ *    Licensed under The Prosperity Public License 3.0.0
+ */-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+    <meta th:replace="_res/inc/header">
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        $(document).ready(function () {
+
+            //open add dialog
+            $("#assign_users").button().click(function () {
+                $('#assignUsersToProfile').submit();
+            });
+
+            //select all check boxes
+            $("#assignUsersToProfile_userSelectAll").click(function (e) {
+                e.stopImmediatePropagation();
+                if ($(this).is(':checked')) {
+                    $(".userSelect").prop('checked', true);
+                } else {
+                    $(".userSelect").prop('checked', false);
+                }
+            });
+
+            $(".sort,.sortAsc,.sortDesc").click(function () {
+                var id = $(this).attr('id')
+
+                var orderDirection = $('#viewProfileUsers_sortedSet_orderByDirection');
+                if (orderDirection.attr('value') === 'asc') {
+                    orderDirection.attr('value', 'desc');
+                } else {
+                    orderDirection.attr('value', 'asc');
+                }
+
+                $('#viewProfileUsers_sortedSet_orderByField').attr('value', id);
+                $("#viewProfileUsers").submit();
+
+            });
+            [# th:if= "${!#strings.isEmpty(sortedSet.orderByField)}"]
+                $('#' + [[${sortedSet.orderByField}]]).attr('class', [[${sortedSet.orderByDirection}]]);
+            [/]
+
+        });
+        /*]]>*/
+    </script>
+
+    <title>Bastillion - Assign Users to Profile</title>
+</head>
+
+<body>
+<div th:replace="_res/inc/navigation"></div>
+<div class="container">
+    <form id="viewProfileUsers" th:action="@{/manage/viewProfileUsers.ktrl}"
+          method="get">
+        <input type="hidden" name="_csrf" th:value="${session._csrf}">
+        <input type="hidden" id="viewProfileUsers_sortedSet_orderByDirection"
+               name="sortedSet.orderByDirection" th:value="${sortedSet.orderByDirection}">
+        <input type="hidden" id="viewProfileUsers_sortedSet_orderByField" name="sortedSet.orderByField"
+               th:value="${sortedSet.orderByField}">
+        <input type="hidden" name="profile.id" th:value="${profile.id}">
+    </form>
+    <h3>Assign Users to Profile</h3>
+    <p>Select the users below to be assigned to the current profile.</p>
+    <h4 th:text="${profile.nm}"></h4>
+    <p class="small" th:text="${profile.desc}"></p>
+    <div class="scrollWrapper" th:if="${sortedSet.itemList != null && !sortedSet.itemList.empty}">
+        <form id="assignUsersToProfile" th:action="@{/manage/assignUsersToProfile.ktrl}"
+              method="post">
+            <input type="hidden" name="_csrf" th:value="${session._csrf}">
+            <input type="hidden" name="profile.id" th:value="${profile.id}">
+            <table class="table-striped scrollableTable">
+                <thead>
+                <tr>
+                    <th th:id="${@io.bastillion.manage.db.UserDB@PROFILE_ID}" class="sort">
+                        <input type="checkbox" id="assignUsersToProfile_userSelectAll" name="userSelectAll"
+                               class="userSelect form-check-input" title="Select All">
+                    </th>
+                    <th th:id="${@io.bastillion.manage.db.UserDB@USERNAME}" class="sort">Username</th>
+                    <th th:if="${@io.bastillion.manage.util.ExternalAuthUtil@externalAuthEnabled}"
+                        th:id="${@io.bastillion.manage.db.UserDB@AUTH_TYPE}" class="sort">Auth Type</th>
+                    <th th:id="${@io.bastillion.manage.db.UserDB@LAST_NM}" class="sort">Last Name</th>
+                    <th th:id="${@io.bastillion.manage.db.UserDB@FIRST_NM}"
+                        class="sort">First Name</th>
+                    <th th:id="${@io.bastillion.manage.db.UserDB@EMAIL}" class="sort">Email Address</th>
+                </tr>
+                </thead>
+                <tbody>
+                <template th:each="user : ${sortedSet.itemList}" th:remove="tag">
+                    <tr>
+                        <td>
+                            <input type="checkbox" th:id="'userSelectId_'+ ${user.id}" name="userSelectId"
+                                   class="userSelect form-check-input" th:value="${user.id}" th:checked="${user.checked}">
+                        </td>
+                        <td th:text="${user.username}"></td>
+                        <td th:if="${@io.bastillion.manage.util.ExternalAuthUtil@externalAuthEnabled}">
+                            <template th:if="${#strings.equals(user.authType, 'BASIC')}"
+                                      th:remove="tag">Basic</template>
+                            <template th:if="${#strings.equals(user.authType, 'EXTERNAL')}"
+                                      th:remove="tag">External</template>
+                        </td>
+                        <td th:text="${user.lastNm}"></td>
+                        <td th:text="${user.firstNm}"></td>
+                        <td th:text="${user.email}"></td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
+        </form>
+    </div>
+    <div id="assign_users" th:if="${sortedSet.itemList != null && !sortedSet.itemList.empty}"
+         class="btn btn-secondary assign_user_btn spacer spacer-bottom">Assign</div>
+    <div class="error" th:if="${sortedSet.itemList == null || sortedSet.itemList.empty}">There are no terms associated with session(<a th:href="'viewUsers.ktrl?_csrf=' + ${session._csrf}">Manage Users</a>).</div>
+</div>
+</body>
+
+</html>

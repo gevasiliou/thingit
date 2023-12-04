@@ -1,0 +1,23 @@
+2023-12-03 22:12:41.935:INFO:oejs.Server:main: jetty-9.4.51.v20230217; built: 2023-02-17T08:19:37.309Z; git: b45c405e4544384de066f814ed42ae3dceacdd49; jvm 17.0.9+9-Debian-1deb12u1
+2023-12-03 22:12:42.032:INFO:oejdp.ScanningAppProvider:main: Deployment monitor [file:///home/gv/Desktop/thingit/Bastillion-jetty/jetty/webapps/] at interval 1
+2023-12-03 22:12:45.131:INFO:oeja.AnnotationConfiguration:main: Scanning elapsed time=1850ms
+2023-12-03 22:12:46.850:INFO:oejs.session:main: DefaultSessionIdManager workerName=node0
+2023-12-03 22:12:46.850:INFO:oejs.session:main: No SessionScavenger set, using defaults
+2023-12-03 22:12:46.855:INFO:oejs.session:main: node0 Scavenging every 600000ms
+SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See https://www.slf4j.org/codes.html#noProviders for further details.
+SLF4J: Class path contains SLF4J bindings targeting slf4j-api versions 1.7.x or earlier.
+SLF4J: Ignoring binding found at [jar:file:/home/gv/Desktop/thingit/Bastillion-jetty/jetty/bastillion/WEB-INF/lib/log4j-slf4j-impl-2.20.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See https://www.slf4j.org/codes.html#ignoredBindings for an explanation.
+Setting Bastillion SSH public/private key pair
+Finger print: 6e:db:39:4e:95:86:9e:ef:86:2a:5c:87:9c:63:ab:4c
+Bastillion Generated Global Public Key:
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDeuahBml2ASax0GgrSIeUOrcUN3jwDyADAFY0VJvBB19/XVvrxL+qdN9gYMbC1TTmWM5/pNUhmHkAJJgZAj7PDX7sLlZRqFm+Lw3gg+P5bJSXtk35jR52SErCRLDa4x1NZbdkNVkCkJHmTaWFuzt9eY5tBVZKXYcHyVg5SZcGOUpdsgD1FI9D3FikgTIJ8cxvYSWj9X00NXW2TYjQRK0tAiEfBYqijHxNvhAmVHAOD2UXwNSIEdAANP7pamkq75IVqd3xWRqggNdHfy1LujIkyvMh6Gp4q5jyF7em3H/+fKV+PNCdsLtcBcdfIzeAkHaLo0MEqp0aIO/QZX0LJyu6BATASiM6uFUPS+IM3bPUCiQUsTO/wBMDO6gjXq2WJUS3J2SAT4XXGfC0K4QV756fN16RHSww8bK2l/nv1MOIdapcJIszfd8xrqM54HgRNj1J+EOmHS2kw0aYzITvUCUcH+ToCbzK/ykQV4AhhSwWxhYw8h1f3ltRouoETDFZdT39QOHmGqZ9UDdjrO9KHo+qSpL1ygH8YMFZkZZOu9OOqMwWuJzL3CvKoZ0/KW9s9nd+DBANh9URvnK76chgVyuVexK8zTAP4qBD3hL24WQwW84LVP4RGH+Q4MDWvkfncz8HirZIHSql8oQzf1CReO/U2gKGuYbb1KnaC9iIG9cCd3w== bastillion@global_key
+
+2023-12-03 22:13:13.152:INFO:oejsh.ContextHandler:main: Started o.e.j.w.WebAppContext@37271612{/,file:///home/gv/Desktop/thingit/Bastillion-jetty/jetty/bastillion/,AVAILABLE}{/home/gv/Desktop/thingit/Bastillion-jetty/jetty/bastillion}
+2023-12-03 22:13:13.981:INFO:oejus.SslContextFactory:main: x509=X509@29fc1a2b(jetty,h=[sean kavanagh],a=[],w=[]) for Server@4d0b0fd4[provider=null,keyStore=file:///home/gv/Desktop/thingit/Bastillion-jetty/jetty/etc/keystore,trustStore=file:///home/gv/Desktop/thingit/Bastillion-jetty/jetty/etc/keystore]
+2023-12-03 22:13:14.738:INFO:oejs.AbstractConnector:main: Started ServerConnector@546955e8{SSL, (ssl, http/1.1)}{0.0.0.0:8443}
+2023-12-03 22:13:14.741:INFO:oejs.Server:main: Started @38556ms
+2023-12-03 22:22:36.611:WARN:oejs.HttpChannel:qtp1308244637-15: handleException /img/bastillion.ico java.io.IOException: Close SendCallback@6f9ceaac[PROCESSING][i=HTTP/1.1{s=200,h=9,cl=7790},cb=org.eclipse.jetty.server.HttpChannel$SendCallback@230dec1e] in state PROCESSING
+cat: .ssh/authorized_keys: No such file or directory
