@@ -45,6 +45,7 @@ const argv = yargs
     description: 'Interval in milliseconds for autoreading registers',
     type: 'number',
     alias: 'a',
+    default: 5000,
   })
   .option('runonce', {
     description: 'Read the registers once and exit',

@@ -36,7 +36,7 @@ ThingIt is actually a REST API Server customized to accept json by data-senders,
 
 You need to have node.js and npm (nodejs packet manager) installed in your machine to make ThingIt work.  
 Also you need to install the followind nodejs modules:  
-`npm install ws path http express body-parser`  
+`npm install ws path http express body-parser yargs fs modbus-serial`  
 
 
 ## Server Setup ##
