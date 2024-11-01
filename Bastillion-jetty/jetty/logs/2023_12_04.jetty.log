@@ -1,0 +1,19 @@
+2023-12-04 12:53:14.988:INFO:oejs.Server:main: jetty-9.4.51.v20230217; built: 2023-02-17T08:19:37.309Z; git: b45c405e4544384de066f814ed42ae3dceacdd49; jvm 17.0.9+9-Debian-1deb12u1
+2023-12-04 12:53:15.015:INFO:oejdp.ScanningAppProvider:main: Deployment monitor [file:///var/www/html/thingit/Bastillion-jetty/jetty/webapps/] at interval 1
+2023-12-04 12:53:15.922:INFO:oeja.AnnotationConfiguration:main: Scanning elapsed time=580ms
+2023-12-04 12:53:16.252:INFO:oejs.session:main: DefaultSessionIdManager workerName=node0
+2023-12-04 12:53:16.252:INFO:oejs.session:main: No SessionScavenger set, using defaults
+2023-12-04 12:53:16.253:INFO:oejs.session:main: node0 Scavenging every 660000ms
+SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See https://www.slf4j.org/codes.html#noProviders for further details.
+SLF4J: Class path contains SLF4J bindings targeting slf4j-api versions 1.7.x or earlier.
+SLF4J: Ignoring binding found at [jar:file:/var/www/html/thingit/Bastillion-jetty/jetty/bastillion/WEB-INF/lib/log4j-slf4j-impl-2.20.0.jar!/org/slf4j/impl/StaticLoggerBinder.class]
+SLF4J: See https://www.slf4j.org/codes.html#ignoredBindings for an explanation.
+2023-12-04 12:53:17.912:INFO:oejsh.ContextHandler:main: Started o.e.j.w.WebAppContext@15bbf42f{/,file:///var/www/html/thingit/Bastillion-jetty/jetty/bastillion/,AVAILABLE}{/var/www/html/thingit/Bastillion-jetty/jetty/bastillion}
+2023-12-04 12:53:18.412:INFO:oejus.SslContextFactory:main: x509=X509@66e889df(jetty,h=[sean kavanagh],a=[],w=[]) for Server@444548a0[provider=null,keyStore=file:///var/www/html/thingit/Bastillion-jetty/jetty/etc/keystore,trustStore=file:///var/www/html/thingit/Bastillion-jetty/jetty/etc/keystore]
+2023-12-04 12:53:18.582:INFO:oejs.AbstractConnector:main: Started ServerConnector@4b7fde1b{SSL, (ssl, http/1.1)}{0.0.0.0:8443}
+2023-12-04 12:53:18.582:INFO:oejs.Server:main: Started @4768ms
+2023-12-04 13:09:15.382:INFO:oejs.AbstractConnector:JettyShutdownThread: Stopped ServerConnector@4b7fde1b{SSL, (ssl, http/1.1)}{0.0.0.0:8443}
+2023-12-04 13:09:15.384:INFO:oejs.session:JettyShutdownThread: node0 Stopped scavenging
+2023-12-04 13:09:15.398:INFO:oejsh.ContextHandler:JettyShutdownThread: Stopped o.e.j.w.WebAppContext@15bbf42f{/,null,STOPPED}{/var/www/html/thingit/Bastillion-jetty/jetty/bastillion}
